@@ -56,8 +56,9 @@ Dokumen ini adalah panduan interaktif (User Journey) untuk mencoba semua fitur y
 *Melihat riwayat scan dan menghitung penghematan biaya pupuk.*
 
 1. Buka menu **📊 Dashboard**.
-2. Di sini Anda bisa melihat **Trend Skor BWD** dalam bentuk grafik.
-3. Di bagian bawah, ada **Kalkulasi Biaya Pupuk**:
+2. **Coba fitur Filter Lahan:** Di pojok kanan atas, klik *dropdown* "Semua Sawah" dan pilih salah satu sawah Anda. Semua grafik dan angka akan otomatis berubah menyesuaikan lahan tersebut!
+3. Perhatikan **Indikator Growth (Panah ↗️/↘️)** pada kotak ringkasan (Total Scan, Urea, dll). Ini membandingkan hasil scan terbaru Anda dengan scan sebelumnya, membuat metrik menjadi lebih *actionable*.
+4. Di bagian bawah, ada **Kalkulasi Biaya Pupuk**:
    - Anda bisa mengubah harga Urea per kg (Misal: Rp 3.500).
    - Ubah Luas Sawah Anda (Misal: 1.5 ha).
    - Sistem akan otomatis menghitung: *Berapa biaya pupuk kalau pakai BWD AI* VS *Kalau pakai cara tradisional/menebak*.
