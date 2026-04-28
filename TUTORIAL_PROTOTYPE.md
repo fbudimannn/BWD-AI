@@ -1,75 +1,74 @@
-# 🌾 Panduan Uji Coba Prototype BWD AI
+# 🌾 Panduan Visual Uji Coba BWD AI
 
-Dokumen ini adalah panduan interaktif (User Journey) untuk mencoba semua fitur yang ada di **BWD AI Web Prototype** (Fase MVP). Silakan ikuti langkah-langkah di bawah ini secara berurutan untuk merasakan pengalaman *end-to-end* sebagai seorang petani.
+Selamat datang di panduan interaktif **BWD AI Web Prototype**. Dokumen ini telah diperbarui khusus untuk mendemonstrasikan pengalaman UI terbaru kita (*Harvest Modern Design System*) serta fitur interaktif **Kalender Pemupukan** dan **Micro-Thumbnails**.
 
 **🔗 Link Akses Prototype:** [https://fbudimannn.github.io/BWD-AI/](https://fbudimannn.github.io/BWD-AI/)
 
+Silakan ikuti langkah-langkah di bawah ini untuk merasakan pengalaman aplikasi secara utuh (End-to-End).
+
 ---
 
-## 🎯 Skenario 1: Onboarding (Persiapan Awal)
-*Sebagai petani baru, Anda harus mengatur profil dan mendaftarkan lahan sawah Anda.*
+## 🎯 Skenario 1: Onboarding & Home
+*Sebagai petani, Anda akan mendarat di halaman beranda yang menampilkan metrik kunci secara instan.*
 
-1. **Buka Aplikasi** melalui browser HP atau Laptop.
-2. Buka menu **👤 Profil** (di Navigasi Bawah).
-3. **Ubah Nama:** Klik pada tulisan "Petani" di bawah avatar, dan ketikkan nama Anda (Misal: *Pak Budi*).
-4. **Tambah Sawah:** 
-   - Klik tombol **+ Tambah Sawah**.
-   - Masukkan nama sawah (Misal: *Sawah Lor*) dan luasnya (Misal: *1.5* ha).
-   - *Perhatikan bahwa sawah baru Anda sekarang muncul di daftar "Sawah Saya".*
+1. **Buka Aplikasi** melalui *smartphone* atau laptop.
+2. Anda akan langsung melihat halaman **🏠 Home**.
+3. Halaman ini dirancang sangat bersih dengan sapaan personalisasi ("Halo, Petani!").
+4. Di bagian bawah terdapat **Menu Cepat** dan **Jadwal Mendatang** yang memberikan akses kilat tanpa navigasi yang membingungkan.
 
-## 📅 Skenario 2: Mengatur Jadwal Tanam
-*Agar AI bisa mengingatkan kapan harus memupuk, Anda harus memasukkan tanggal tanam.*
+![Tampilan Home BWD AI](file:///C:/Users/Fakhri/.gemini/antigravity/brain/bb8c9516-1334-4b8f-a139-6d9b18d67bc4/home_tab_1777402947906.png)
 
-1. Buka menu **📅 Kalender**.
-2. Pada bagian **Tanggal Tanam**, pilih tanggal **1 bulan yang lalu** (Tujuannya agar kita bisa memicu simulasi notifikasi "Waktunya Pupuk" hari ini).
-3. Pilih sawah Anda dari *dropdown* (Misal: *Sawah Lor*).
-4. Klik tombol biru **Set Jadwal**.
-5. *Lihat hasilnya:* 
-   - Muncul **Timeline Pertumbuhan** yang menunjukkan fase padi saat ini (Misal: *Anakan Aktif / Primordia*).
-   - Muncul daftar **Jadwal Scan & Pemupukan** di bawahnya.
+---
 
-## 🔔 Skenario 3: Mengecek Notifikasi Pintar
-*Aplikasi akan mengingatkan Anda jika ada jadwal penting.*
+## 📅 Skenario 2: Mengatur Jadwal & Mencatat Pupuk (Fitur Baru)
+*Petani harus memasukkan tanggal tanam agar sistem bisa mengingatkan kapan harus memupuk, dan mencatat eksekusinya di lapangan.*
 
-1. Pindah ke menu **🏠 Home**.
-2. Coba perhatikan **Ikon Lonceng 🔔** di pojok kanan atas. Akan ada titik merah kecil yang menandakan notifikasi baru!
-3. Klik ikon lonceng tersebut.
-4. Anda akan melihat pesan dari AI: *"📸 Waktunya scan BWD di Sawah Lor!"* 
-5. Di menu Home, Anda juga bisa melihat rangkuman jadwal mendatang di bagian **🔔 Jadwal Mendatang**.
+1. Pindah ke menu **📅 Kalender**.
+2. Pilih tanggal tanam dari *datepicker*. (Coba pilih tanggal sekitar **25 hari yang lalu** agar jadwal pemupukan hari ini aktif).
+3. Klik tombol **Set Jadwal**.
+4. Sistem akan membuatkan jadwal "Scan BWD" dan "Pemupukan".
+5. **Simulasi Aksi:** Jika hari ini adalah jadwal memupuk (atau sudah lewat), Anda akan melihat tombol biru **"Tandai Dipupuk"**.
+6. Klik tombol tersebut! Lencana akan berubah seketika menjadi **✅ Selesai**, yang berarti aktivitas pemupukan Anda telah tercatat dengan baik di log aplikasi.
 
-## 📸 Skenario 4: Simulasi Scan Daun (Fitur Utama)
-*Saatnya mengecek apakah padi Anda kekurangan Nitrogen atau tidak.*
+![Kalender Interaktif & Tombol Pemupukan](file:///C:/Users/Fakhri/.gemini/antigravity/brain/bb8c9516-1334-4b8f-a139-6d9b18d67bc4/calendar_1777403031674.png)
+
+---
+
+## 📸 Skenario 3: Simulasi Scan Daun
+*Mengecek apakah padi Anda kekurangan Nitrogen dengan teknologi kamera HP.*
 
 1. Buka menu **📸 Scan**.
-2. Di bagian Langkah 1, klik **Ambil Foto** (atau tap pada area kotak putus-putus).
-3. Jika di HP, kamera Anda akan terbuka. Jika di Laptop, Anda akan diminta memilih file gambar.
-   - *Tips: Coba foto sembarang daun hijau di sekitar Anda, atau gunakan gambar daun dari Google.*
-4. Di bagian Langkah 2, pilih **Target Hasil Panen** yang Anda inginkan (Misal: *7 ton/ha*).
-5. Pilih lokasi sawah di bagian **📍 Sawah**.
-6. Klik tombol hijau besar **🧠 Analisis Sekarang**.
-7. *Tunggu 1-2 detik (animasi loading), dan lihat Hasil Analisisnya!*
-   - Anda akan mendapatkan **Skor BWD** (Skala 2 sampai 5).
-   - **Status Nitrogen** (Apakah kurang, pas, atau berlebih).
-   - **Rekomendasi Dosis Urea** (Berapa kg/ha yang harus disebar).
+2. Klik tombol besar **Ambil Foto** untuk membuka kamera HP Anda.
+3. Arahkan ke daun padi yang sehat/terbuka sempurna.
+4. Pilih **Target Hasil Panen** (Misal: *7 ton/ha*). Target panen ini akan mempengaruhi seberapa banyak sistem menyarankan pemberian dosis urea!
+5. Klik **🧠 Analisis Sekarang**.
+6. Dalam 1 detik, hasil akan keluar lengkap dengan **Dosis Urea** yang disarankan dan **Analisa RGB** secara mendetail.
 
-## 📊 Skenario 5: Analitik & Evaluasi Bisnis
-*Melihat riwayat scan dan menghitung penghematan biaya pupuk.*
-
-1. Buka menu **📊 Dashboard**.
-2. **Coba fitur Filter Lahan:** Di pojok kanan atas, klik *dropdown* "Semua Sawah" dan pilih salah satu sawah Anda. Semua grafik dan angka akan otomatis berubah menyesuaikan lahan tersebut!
-3. Perhatikan **Indikator Growth (Panah ↗️/↘️)** pada kotak ringkasan (Total Scan, Urea, dll). Ini membandingkan hasil scan terbaru Anda dengan scan sebelumnya, membuat metrik menjadi lebih *actionable*.
-4. Di bagian bawah, ada **Kalkulasi Biaya Pupuk**:
-   - Anda bisa mengubah harga Urea per kg (Misal: Rp 3.500).
-   - Ubah Luas Sawah Anda (Misal: 1.5 ha).
-   - Sistem akan otomatis menghitung: *Berapa biaya pupuk kalau pakai BWD AI* VS *Kalau pakai cara tradisional/menebak*.
-   - Lihat bagian paling bawah (warna oranye) untuk melihat **Estimasi Penghematan Uang Anda!**
-
-## 🏆 Skenario 6: Gamifikasi (Achievements)
-*Sistem akan memberikan reward berupa badge kepada petani yang rajin.*
-
-1. Kembali ke menu **👤 Profil**.
-2. Perhatikan deretan *badge* (lencana) di bawah nama Anda.
-3. Karena Anda baru saja melakukan 1x Scan, **Badge Kamera 📸 (Scan Pertama)** sekarang menyala dan terbuka kuncinya! Badge lain masih terkunci sampai Anda mencapai target tertentu.
+![Halaman Scan Daun Padi](file:///C:/Users/Fakhri/.gemini/antigravity/brain/bb8c9516-1334-4b8f-a139-6d9b18d67bc4/scan_1777403061272.png)
 
 ---
-> **Catatan Teknis untuk Penguji:** Prototype saat ini menggunakan algoritma Color Extraction (Heuristik RGB) sementara sebagai pengganti model AI Deep Learning. Pemrosesan terjadi 100% di perangkat Anda (Offline/Client-side). Fase berikutnya akan menggantikan algoritma ini dengan model *Convolutional Neural Network (CNN)* terlatih.
+
+## 📊 Skenario 4: Membaca Dashboard & Thumbnail (Fitur Baru)
+*Memantau seluruh sawah Anda, melihat uang yang dihemat, dan mengecek foto hasil scan masa lalu.*
+
+1. Pindah ke menu **📊 Dashboard**.
+2. Anda bisa melihat **Rangkuman Total**. Di sinilah metrik *"Actionable"* bekerja. Panah (↗️/↘️) akan menunjukkan apakah jumlah urea Anda naik atau turun dibanding masa lalu.
+3. Coba **Filter Sawah**: Jika Anda punya lebih dari 1 sawah (yang bisa ditambah di menu Profil), *dropdown* di atas akan memfilter seluruh data khusus untuk lahan tersebut.
+4. **Micro-Thumbnails:** Gulir ke bawah ke bagian **📋 Riwayat Scan**. Perhatikan bahwa alih-alih cuma angka, kini sistem menyimpan **FOTO ASLI** yang Anda ambil saat scan dalam bentuk *thumbnail* kecil. Memori HP Anda tidak akan penuh karena teknologi kompresi pintar kami.
+
+![Dashboard Analitik BWD AI](file:///C:/Users/Fakhri/.gemini/antigravity/brain/bb8c9516-1334-4b8f-a139-6d9b18d67bc4/dashboard_1777403082997.png)
+
+---
+
+## 👤 Skenario 5: Personalisasi Profil & Lahan
+*Mengelola identitas dan aset.*
+
+1. Buka menu **👤 Profil**.
+2. Di sini Anda bisa mengubah nama Anda kapan saja.
+3. Di bagian "Sawah Saya", klik **+ Tambah Sawah** untuk menambahkan petak sawah baru. Sawah ini nantinya bisa dipilih saat Anda melakukan Scan atau membuat Jadwal Kalender.
+4. Jangan lupa perhatikan lencana penghargaan (Gamifikasi). Saat Anda sudah sering scan, lencana-lencana ini akan menyala.
+
+![Halaman Profil dan Lahan](file:///C:/Users/Fakhri/.gemini/antigravity/brain/bb8c9516-1334-4b8f-a139-6d9b18d67bc4/profile_1777403097989.png)
+
+---
+> **Catatan Teknis untuk Penguji:** Prototype saat ini berjalan **100% Offline (Client-side)** di HP Anda tanpa server *database*. Hal ini membuktikan kecepatan aplikasi di daerah susah sinyal. Semua data Anda (jadwal, log pemupukan, foto daun terkompresi) aman tersimpan di *browser* HP Anda masing-masing.
