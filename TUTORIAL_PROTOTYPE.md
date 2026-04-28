@@ -28,7 +28,8 @@ Silakan ikuti langkah-langkah di bawah ini untuk merasakan pengalaman aplikasi s
 3. Klik tombol **Set Jadwal**.
 4. Sistem akan membuatkan jadwal "Scan BWD" dan "Pemupukan".
 5. **Simulasi Aksi:** Jika hari ini adalah jadwal memupuk (atau sudah lewat), Anda akan melihat tombol biru **"Tandai Dipupuk"**.
-6. Klik tombol tersebut! Lencana akan berubah seketika menjadi **✅ Selesai**, yang berarti aktivitas pemupukan Anda telah tercatat dengan baik di log aplikasi.
+6. Klik tombol tersebut! Sebuah kotak dialog akan muncul menanyakan *"Berapa kg Urea/ha yang Anda tabur?"*. Angka rekomendasi dari scan sebelumnya otomatis terisi.
+7. Klik **OK**. Lencana akan berubah seketika menjadi **✅ Selesai**, dan jumlah pupuk ini akan langsung tercatat ke Dashboard.
 
 ![Kalender Interaktif & Tombol Pemupukan](file:///C:/Users/Fakhri/.gemini/antigravity/brain/bb8c9516-1334-4b8f-a139-6d9b18d67bc4/calendar_1777403031674.png)
 

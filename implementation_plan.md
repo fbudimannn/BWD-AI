@@ -129,12 +129,18 @@ Poin sangat penting: **Petani tidak memupuk berdasarkan 1 daun saja**. Sawah itu
 
 ### 📱 Calendar & Notification Strategy (UX)
 
-Agar aplikasi tidak sekadar menjadi scanner pasif, sistem Kalender dan Notifikasi akan diintegrasikan secara proaktif:
+Agar aplikasi tidak sekadar menjadi scanner pasif, sistem Kalender dan Notifikasi diintegrasikan secara proaktif:
 
 1. **Onboarding Tanam**: Petani mendaftarkan tanggal tanam padi (HST 0) di aplikasi.
 2. **Local Logic (MVP - Saat Ini)**: Aplikasi menghitung timeline kritis (misal: 25 HST, 35 HST). Indikator visual (red dot 🔴) dan notifikasi lokal (in-app) diaktifkan saat mendekati tanggal tersebut.
 3. **Push Notifications (Fase 5 - Native)**: Saat bermigrasi ke Android Native (Flutter), sistem akan menggunakan OS-level push notifications sehingga alarm pengingat muncul di layar HP meski aplikasi ditutup.
 4. **WhatsApp Integration (Fase 6 - Advance)**: Backend mengirimkan pengingat jadwal pupuk via WhatsApp Bot (karena WA adalah media komunikasi yang paling sering dibuka oleh petani).
+
+### 📊 Dashboard & Calendar Integration (Actionable Metrics)
+
+Sistem Dashboard telah berevolusi dari *Vanity Metrics* (sekadar menghitung angka saran dari kamera) menjadi **Actionable Metrics**:
+- **Actual Dose Tracking**: Petani mencatat jumlah pupuk aktual yang ditebar ke dalam *log* Kalender.
+- **Real-world Savings**: Penghematan uang dihitung murni dari pengeluaran pupuk aktual vs praktik tradisional, memberikan petani visualisasi *Return on Investment* (ROI) yang akurat dan berbasis data riil.
 
 ### Beyond Python — Tools yang Juga Dibutuhkan
 
