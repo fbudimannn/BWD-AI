@@ -114,6 +114,15 @@ flowchart TD
 > [!TIP]
 > **Recommended Path**: Mulai dengan **PWA (Progressive Web App)** untuk MVP/proof-of-concept, lalu migrasi ke **Flutter** untuk production app. PWA bisa dibangun cepat dan langsung testable tanpa install.
 
+### 📱 Calendar & Notification Strategy (UX)
+
+Agar aplikasi tidak sekadar menjadi scanner pasif, sistem Kalender dan Notifikasi akan diintegrasikan secara proaktif:
+
+1. **Onboarding Tanam**: Petani mendaftarkan tanggal tanam padi (HST 0) di aplikasi.
+2. **Local Logic (MVP - Saat Ini)**: Aplikasi menghitung timeline kritis (misal: 25 HST, 35 HST). Indikator visual (red dot 🔴) dan notifikasi lokal (in-app) diaktifkan saat mendekati tanggal tersebut.
+3. **Push Notifications (Fase 5 - Native)**: Saat bermigrasi ke Android Native (Flutter), sistem akan menggunakan OS-level push notifications sehingga alarm pengingat muncul di layar HP meski aplikasi ditutup.
+4. **WhatsApp Integration (Fase 6 - Advance)**: Backend mengirimkan pengingat jadwal pupuk via WhatsApp Bot (karena WA adalah media komunikasi yang paling sering dibuka oleh petani).
+
 ### Beyond Python — Tools yang Juga Dibutuhkan
 
 | Category | Tools |
