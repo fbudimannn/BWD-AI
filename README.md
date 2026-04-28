@@ -68,8 +68,8 @@ uvicorn api.main:app --reload
 ## 👥 Team
 
 - **Teguh Iman Santoso** — Domain Expert & Advisor
-- **Fakhri Musyafa Budiman** — ML Engineer & Dev Lead
-- **Restu** — Data Collection & Testing
+- **Fakhri Musyafa Budiman** - Tim hore tech support and data science
+- **Restu** - Time hore tech support and data science
 
 ## 📄 License
 
