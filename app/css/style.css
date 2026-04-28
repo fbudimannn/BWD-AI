@@ -64,9 +64,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:var(--tex
 .step-badge{display:inline-block;font-size:11px;font-weight:700;color:var(--accent2);background:rgba(76,175,80,0.15);padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
 
 /* Hero Home */
-.hero-home{padding:28px 0 12px}
-.hero-home h2{font-size:28px;font-weight:900;letter-spacing:-0.5px;color:var(--text-primary)}
-.hero-sub{color:var(--text-secondary);font-size:15px;margin-top:6px;font-weight:500}
+.hero-home{padding:48px 16px 24px;margin:-20px -16px 20px;background:linear-gradient(to bottom,rgba(255,255,255,0.6),var(--bg-primary)),url('../img/paddy-bg.jpg') center/cover;border-radius:0 0 24px 24px;position:relative}
+.hero-home h2{font-size:28px;font-weight:900;letter-spacing:-0.5px;color:var(--text-primary);position:relative;z-index:2}
+.hero-sub{color:var(--text-secondary);font-size:15px;margin-top:6px;font-weight:500;position:relative;z-index:2}
 .gradient-text{background:var(--gradient-leaf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
 /* Quick Stats */
@@ -239,7 +239,7 @@ select.input-field{cursor:pointer;appearance:none;background-image:url("data:ima
 .cost-green{color:var(--accent2);font-weight:700}
 
 /* Profile */
-.profile-header-card{text-align:center;padding:36px 20px;background:linear-gradient(to bottom, #ffffff, #f8faf9)}
+.profile-header-card{text-align:center;padding:36px 20px;background:linear-gradient(to bottom,rgba(255,255,255,0.8),var(--bg-card)),url('../img/paddy-bg.jpg') center/cover;position:relative}
 .profile-avatar{font-size:56px;margin-bottom:12px;display:inline-block;background:#f0f4f2;border-radius:50%;width:90px;height:90px;line-height:90px;box-shadow:var(--shadow-sm)}
 .profile-name-input{background:transparent;border:none;border-bottom:2px dashed #CBD5E1;color:var(--text-primary);font-size:24px;font-weight:900;text-align:center;padding:6px 12px;width:100%;max-width:280px;font-family:inherit;transition:var(--transition)}
 .profile-name-input:focus{outline:none;border-bottom-color:var(--accent);background:rgba(76,175,80,0.05);border-radius:8px 8px 0 0}
