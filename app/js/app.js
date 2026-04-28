@@ -192,14 +192,16 @@ function refreshCalendar() {
     schedItems.forEach(s => {
         const dt = new Date(d0); dt.setDate(dt.getDate()+s.hst);
         const logId = `${field}_${s.hst}`;
-        const isLogged = state.fertLogs && state.fertLogs.includes(logId);
+        const isLogged = state.fertLogs && state.fertLogs.some(l => (typeof l === 'string' ? l === logId : l.id === logId));
         
         let statusHtml = '';
         if (isLogged) {
-            statusHtml = `<span class="sched-status done">✅ Selesai</span>`;
+            const logEntry = state.fertLogs.find(l => typeof l === 'object' && l.id === logId);
+            const doseText = logEntry ? ` (${logEntry.dose}kg)` : '';
+            statusHtml = `<span class="sched-status done">✅ Selesai${doseText}</span>`;
         } else if (hst >= s.hst) {
             if (s.type === 'fert') {
-                statusHtml = `<button class="btn btn-primary" style="padding:4px 10px; font-size:11px; border-radius:12px; margin-left:auto; flex:none" onclick="markFertilized('${logId}')">Tandai Dipupuk</button>`;
+                statusHtml = `<button class="btn btn-primary" style="padding:4px 10px; font-size:11px; border-radius:12px; margin-left:auto; flex:none" onclick="markFertilized('${logId}', '${field}', ${s.hst})">Tandai Dipupuk</button>`;
             } else {
                 statusHtml = `<span class="sched-status pending">⚠️ Terlewat</span>`;
             }
@@ -212,9 +214,20 @@ function refreshCalendar() {
     document.getElementById('scheduleList').innerHTML = schHtml;
 }
 
-function markFertilized(logId) {
+function markFertilized(logId, fieldId, hst) {
     if(!state.fertLogs) state.fertLogs=[];
-    state.fertLogs.push(logId);
+    
+    const fieldScans = state.scans.filter(s => s.field === fieldId);
+    let recDose = 75;
+    if (fieldScans.length > 0) recDose = fieldScans[fieldScans.length - 1].dose;
+    
+    let actualDoseStr = prompt(`Berapa kg Urea/ha yang Anda tabur di lahan ini?\n(Rekomendasi Scan BWD terakhir: ${recDose} kg/ha)`, recDose);
+    if (actualDoseStr === null) return;
+    
+    let actualDose = parseFloat(actualDoseStr);
+    if (isNaN(actualDose)) actualDose = recDose;
+    
+    state.fertLogs.push({ id: logId, field: fieldId, hst: hst, dose: actualDose, date: new Date().toISOString() });
     saveState();
     refreshCalendar();
 }
@@ -231,22 +244,39 @@ function refreshDashboard() {
     
     if (scans.length > 0) {
         avg = scans.reduce((a,s)=>a+s.bwd,0)/scans.length;
-        totalUrea = scans.reduce((a,s)=>a+(s.dose||0),0);
-        savings = Math.round(totalUrea * 0.25 * state.ureaPrice);
-        
-        // Calculate previous stats (mocking previous period by looking at all but the last scan)
         if (scans.length > 1) {
             const prev = scans.slice(0, -1);
             prevScans = prev.length;
             prevAvg = prev.reduce((a,s)=>a+s.bwd,0)/prev.length;
-            prevUrea = prev.reduce((a,s)=>a+(s.dose||0),0);
-            prevSavings = Math.round(prevUrea * 0.25 * state.ureaPrice);
         }
+    }
+
+    const fertLogs = state.fertLogs || [];
+    const ferts = filterField === 'all' ? fertLogs : fertLogs.filter(l => typeof l === 'object' && l.field === filterField);
+    const validFerts = ferts.filter(l => typeof l === 'object');
+    
+    if (validFerts.length > 0) {
+        validFerts.forEach(l => {
+            const area = state.farms.find(f => f.id === l.field)?.area || 1;
+            totalUrea += (l.dose * area);
+            savings += Math.max(0, (150 - l.dose) * area * state.ureaPrice);
+        });
         
-        document.getElementById('dashAvgBwd').textContent = avg.toFixed(1);
-        document.getElementById('dashTotalUrea').textContent = totalUrea;
-        document.getElementById('dashSavings').textContent = 'Rp ' + savings.toLocaleString('id');
-        document.getElementById('chartEmpty').style.display = 'none';
+        if (validFerts.length > 1) {
+            const prevF = validFerts.slice(0, -1);
+            prevF.forEach(l => {
+                const area = state.farms.find(f => f.id === l.field)?.area || 1;
+                prevUrea += (l.dose * area);
+                prevSavings += Math.max(0, (150 - l.dose) * area * state.ureaPrice);
+            });
+        }
+    }
+    
+    if (scans.length > 0 || validFerts.length > 0) {
+        document.getElementById('dashAvgBwd').textContent = scans.length > 0 ? avg.toFixed(1) : '-';
+        document.getElementById('dashTotalUrea').textContent = Math.round(totalUrea);
+        document.getElementById('dashSavings').textContent = 'Rp ' + Math.round(savings).toLocaleString('id');
+        document.getElementById('chartEmpty').style.display = scans.length > 0 ? 'none' : 'flex';
         drawChart(scans);
     } else {
         document.getElementById('dashAvgBwd').textContent = '-';
@@ -259,8 +289,8 @@ function refreshDashboard() {
     // Update Trends
     updateTrend('trendScans', scans.length - prevScans, scans.length > 1, '', ' scan');
     updateTrend('trendBwd', avg - prevAvg, scans.length > 1, '', '', 1);
-    updateTrend('trendUrea', totalUrea - prevUrea, scans.length > 1, '', ' kg', 0, true); // true = lower is better
-    updateTrend('trendSavings', savings - prevSavings, scans.length > 1, 'Rp ', '', 0);
+    updateTrend('trendUrea', totalUrea - prevUrea, validFerts.length > 1, '', ' kg', 0, true); // true = lower is better
+    updateTrend('trendSavings', savings - prevSavings, validFerts.length > 1, 'Rp ', '', 0);
 
     // History
     let hHtml = '';
