@@ -349,10 +349,9 @@ function exportData() {
 
 // === Home ===
 function refreshHome() {
-    document.getElementById('userName').textContent = state.profile.name;
     const hour = new Date().getHours();
     const greeting = hour<11?'Selamat Pagi':hour<15?'Selamat Siang':hour<18?'Selamat Sore':'Selamat Malam';
-    document.querySelector('.hero-home h2').innerHTML = `${greeting}, <span class="gradient-text">${state.profile.name}</span> 👋`;
+    document.querySelector('.hero-home h2').innerHTML = `${greeting}, <span class="gradient-text" id="userName">${state.profile.name}</span> 👋`;
     const scans = state.scans;
     document.getElementById('totalScans').textContent = scans.length;
     document.getElementById('avgBwd').textContent = scans.length>0?(scans.reduce((a,s)=>a+s.bwd,0)/scans.length).toFixed(1):'-';
