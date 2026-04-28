@@ -231,14 +231,35 @@
     <!-- ===== PAGE: DASHBOARD ===== -->
     <main class="page" id="page-dashboard">
         <div class="container">
-            <h2 class="page-title">📊 Dashboard</h2>
+            <div class="dash-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                <h2 class="page-title" style="margin-bottom:0;">📊 Dashboard</h2>
+                <select id="dashFieldSelect" class="input-field input-sm" onchange="refreshDashboard()">
+                    <option value="all">Semua Sawah</option>
+                </select>
+            </div>
 
             <!-- Summary Stats -->
             <div class="dash-stats">
-                <div class="dash-stat"><span class="dash-stat-val" id="dashTotalScans">0</span><span class="dash-stat-lbl">Total Scan</span></div>
-                <div class="dash-stat"><span class="dash-stat-val" id="dashAvgBwd">-</span><span class="dash-stat-lbl">Rata-rata BWD</span></div>
-                <div class="dash-stat"><span class="dash-stat-val" id="dashTotalUrea">0</span><span class="dash-stat-lbl">Total Urea (kg)</span></div>
-                <div class="dash-stat"><span class="dash-stat-val" id="dashSavings">Rp 0</span><span class="dash-stat-lbl">Estimasi Hemat</span></div>
+                <div class="dash-stat">
+                    <span class="dash-stat-val" id="dashTotalScans">0</span>
+                    <span class="dash-stat-lbl">Total Scan</span>
+                    <div class="trend-indicator" id="trendScans">-</div>
+                </div>
+                <div class="dash-stat">
+                    <span class="dash-stat-val" id="dashAvgBwd">-</span>
+                    <span class="dash-stat-lbl">Rata-rata BWD</span>
+                    <div class="trend-indicator" id="trendBwd">-</div>
+                </div>
+                <div class="dash-stat">
+                    <span class="dash-stat-val" id="dashTotalUrea">0</span>
+                    <span class="dash-stat-lbl">Total Urea (kg)</span>
+                    <div class="trend-indicator" id="trendUrea">-</div>
+                </div>
+                <div class="dash-stat">
+                    <span class="dash-stat-val" id="dashSavings">Rp 0</span>
+                    <span class="dash-stat-lbl">Estimasi Hemat</span>
+                    <div class="trend-indicator" id="trendSavings">-</div>
+                </div>
             </div>
 
             <!-- BWD Trend Chart -->

@@ -217,6 +217,10 @@ select.input-field{cursor:pointer;appearance:none;background-image:url("data:ima
 .dash-stat{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 10px;text-align:center;box-shadow:var(--shadow-sm)}
 .dash-stat-val{display:block;font-size:20px;font-weight:900;color:var(--accent2)}
 .dash-stat-lbl{font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-top:4px}
+.trend-indicator{font-size:11px;font-weight:700;margin-top:8px;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:2px 8px;border-radius:6px;width:fit-content;margin-left:auto;margin-right:auto}
+.trend-up{color:var(--accent2);background:rgba(76,175,80,0.15)}
+.trend-down{color:#ef4444;background:rgba(239,68,68,0.15)}
+.trend-neutral{color:var(--text-muted);background:var(--bg-secondary)}
 .chart-container{position:relative;min-height:200px;padding:10px}
 .chart-container canvas{width:100%!important}
 .chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:14px;font-weight:500}

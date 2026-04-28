@@ -188,20 +188,47 @@ function refreshCalendar() {
 
 // === Dashboard ===
 function refreshDashboard() {
-    const scans = state.scans;
+    const filterField = document.getElementById('dashFieldSelect') ? document.getElementById('dashFieldSelect').value : 'all';
+    const scans = filterField === 'all' ? state.scans : state.scans.filter(s => s.field === filterField);
+    
     document.getElementById('dashTotalScans').textContent = scans.length;
+    
+    let avg = 0, totalUrea = 0, savings = 0;
+    let prevAvg = 0, prevUrea = 0, prevSavings = 0, prevScans = 0;
+    
     if (scans.length > 0) {
-        const avg = scans.reduce((a,s)=>a+s.bwd,0)/scans.length;
+        avg = scans.reduce((a,s)=>a+s.bwd,0)/scans.length;
+        totalUrea = scans.reduce((a,s)=>a+(s.dose||0),0);
+        savings = Math.round(totalUrea * 0.25 * state.ureaPrice);
+        
+        // Calculate previous stats (mocking previous period by looking at all but the last scan)
+        if (scans.length > 1) {
+            const prev = scans.slice(0, -1);
+            prevScans = prev.length;
+            prevAvg = prev.reduce((a,s)=>a+s.bwd,0)/prev.length;
+            prevUrea = prev.reduce((a,s)=>a+(s.dose||0),0);
+            prevSavings = Math.round(prevUrea * 0.25 * state.ureaPrice);
+        }
+        
         document.getElementById('dashAvgBwd').textContent = avg.toFixed(1);
-        const totalUrea = scans.reduce((a,s)=>a+(s.dose||0),0);
         document.getElementById('dashTotalUrea').textContent = totalUrea;
-        const savings = Math.round(totalUrea * 0.25 * state.ureaPrice);
         document.getElementById('dashSavings').textContent = 'Rp ' + savings.toLocaleString('id');
         document.getElementById('chartEmpty').style.display = 'none';
         drawChart(scans);
     } else {
+        document.getElementById('dashAvgBwd').textContent = '-';
+        document.getElementById('dashTotalUrea').textContent = '0';
+        document.getElementById('dashSavings').textContent = 'Rp 0';
         document.getElementById('chartEmpty').style.display = 'flex';
+        drawChart([]); // clear chart
     }
+    
+    // Update Trends
+    updateTrend('trendScans', scans.length - prevScans, scans.length > 1, '', ' scan');
+    updateTrend('trendBwd', avg - prevAvg, scans.length > 1, '', '', 1);
+    updateTrend('trendUrea', totalUrea - prevUrea, scans.length > 1, '', ' kg', 0, true); // true = lower is better
+    updateTrend('trendSavings', savings - prevSavings, scans.length > 1, 'Rp ', '', 0);
+
     // History
     let hHtml = '';
     if (scans.length === 0) { hHtml = '<div class="history-empty">Belum ada riwayat scan.</div>'; }
@@ -212,6 +239,22 @@ function refreshDashboard() {
     }); }
     document.getElementById('historyList').innerHTML = hHtml;
     recalcCost();
+}
+
+function updateTrend(id, diff, hasPrev, pre='', post='', dec=0, lowerIsBetter=false) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!hasPrev || diff === 0) {
+        el.className = 'trend-indicator trend-neutral';
+        el.innerHTML = `<span>➖</span> Stabil`;
+        return;
+    }
+    const isUp = diff > 0;
+    const isGood = lowerIsBetter ? !isUp : isUp;
+    el.className = `trend-indicator ${isGood ? 'trend-up' : 'trend-down'}`;
+    const icon = isUp ? '↗️' : '↘️';
+    const sign = isUp ? '+' : '';
+    el.innerHTML = `<span>${icon}</span> ${sign}${pre}${Math.abs(diff).toFixed(dec).replace(/\.0$/,'')}${post}`;
 }
 
 function drawChart(scans) {
@@ -358,9 +401,10 @@ function generateNotifications() {
 
 // === Helpers ===
 function populateFarmSelects() {
-    ['scanFieldSelect','calFieldSelect'].forEach(id => {
+    ['scanFieldSelect','calFieldSelect','dashFieldSelect'].forEach(id => {
         const el = document.getElementById(id); if(!el) return;
-        el.innerHTML = state.farms.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+        const opts = state.farms.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+        el.innerHTML = id==='dashFieldSelect' ? `<option value="all">Semua Sawah</option>${opts}` : opts;
     });
 }
 function updateScanField() {}
