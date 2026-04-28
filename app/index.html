@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="BWD AI - Platform pertanian presisi berbasis AI untuk optimasi pemupukan nitrogen">
+    <meta name="theme-color" content="#0a0f1a">
+    <title>BWD AI — Platform Pertanian Presisi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ===== TOP BAR ===== -->
+    <header class="topbar" id="topbar">
+        <div class="topbar-left">
+            <div class="logo-mini">🌾</div>
+            <span class="topbar-title" id="topbarTitle">BWD AI</span>
+        </div>
+        <div class="topbar-right">
+            <div class="weather-chip" id="weatherChip" onclick="showPage('home')">
+                <span>🌤️</span> <span id="weatherTemp">29°C</span>
+            </div>
+            <div class="notif-btn" onclick="toggleNotifPanel()">
+                🔔 <span class="notif-dot" id="notifDot"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== NOTIFICATION PANEL ===== -->
+    <div class="notif-panel" id="notifPanel">
+        <h4>🔔 Notifikasi</h4>
+        <div class="notif-list" id="notifList"></div>
+    </div>
+
+    <!-- ===== PAGE: HOME ===== -->
+    <main class="page active" id="page-home">
+        <div class="container">
+            <section class="hero-home">
+                <h2>Selamat Pagi, <span class="gradient-text" id="userName">Petani</span> 👋</h2>
+                <p class="hero-sub" id="heroSub">Hari ini cerah — waktu yang tepat untuk scan daun!</p>
+            </section>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <span class="stat-icon">📸</span>
+                    <span class="stat-value" id="totalScans">0</span>
+                    <span class="stat-label">Total Scan</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">🌾</span>
+                    <span class="stat-value" id="avgBwd">-</span>
+                    <span class="stat-label">Avg BWD</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">💰</span>
+                    <span class="stat-value" id="ureaSaved">0</span>
+                    <span class="stat-label">kg Hemat</span>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <h3 class="section-label">⚡ Aksi Cepat</h3>
+            <div class="quick-actions">
+                <button class="action-card" onclick="showPage('scan')">
+                    <span class="action-icon">📸</span>
+                    <span class="action-title">Scan Daun</span>
+                    <span class="action-desc">Analisis warna daun sekarang</span>
+                </button>
+                <button class="action-card" onclick="showPage('calendar')">
+                    <span class="action-icon">📅</span>
+                    <span class="action-title">Lihat Jadwal</span>
+                    <span class="action-desc">Cek jadwal scan & pemupukan</span>
+                </button>
+            </div>
+
+            <!-- Upcoming Reminders -->
+            <h3 class="section-label">🔔 Jadwal Mendatang</h3>
+            <div class="reminder-list" id="upcomingReminders">
+                <div class="reminder-empty">Belum ada jadwal. Mulai dengan menambah tanggal tanam di 📅 Kalender.</div>
+            </div>
+
+            <!-- Recent Scans -->
+            <h3 class="section-label">📋 Scan Terakhir</h3>
+            <div class="recent-scans" id="recentScans">
+                <div class="reminder-empty">Belum ada riwayat scan. Tap 📸 untuk mulai scan pertama!</div>
+            </div>
+
+            <!-- BWD Guide Card -->
+            <div class="card guide-card-home">
+                <h3>📖 Panduan Cepat</h3>
+                <div class="guide-mini-grid">
+                    <div class="guide-mini"><span>1</span> Pilih daun teratas yang sudah membuka penuh</div>
+                    <div class="guide-mini"><span>2</span> Foto di bawah cahaya alami, jarak ~20cm</div>
+                    <div class="guide-mini"><span>3</span> Set target panen & lihat rekomendasi</div>
+                </div>
+                <div class="bwd-scale-mini">
+                    <div class="scale-c" style="background:#CDDC39">2</div>
+                    <div class="scale-c" style="background:#8BC34A">3</div>
+                    <div class="scale-c" style="background:#4CAF50">4</div>
+                    <div class="scale-c" style="background:#2E7D32">5</div>
+                </div>
+                <div class="scale-labels"><span>Kurang N</span><span>Cukup N</span></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== PAGE: SCAN ===== -->
+    <main class="page" id="page-scan">
+        <div class="container">
+            <div class="scanner-grid">
+                <div class="card capture-card">
+                    <div class="card-header"><div class="step-badge">Langkah 1</div><h3>📸 Ambil Foto Daun</h3></div>
+                    <div class="capture-area" id="captureArea" onclick="if(!capturedImage) triggerCapture()">
+                        <input type="file" id="imageInput" accept="image/*" capture="environment" hidden>
+                        <div class="capture-placeholder" id="capturePlaceholder">
+                            <div class="capture-icon">📷</div>
+                            <p>Tap untuk ambil foto daun padi</p>
+                            <span class="capture-hint">Gunakan daun teratas yang sudah membuka sempurna</span>
+                        </div>
+                        <img id="previewImage" class="preview-image" style="display:none" alt="Preview">
+                        <canvas id="analysisCanvas" style="display:none"></canvas>
+                    </div>
+                    <div class="capture-actions">
+                        <button class="btn btn-primary" onclick="triggerCapture()"><span>📸</span> Ambil Foto</button>
+                        <button class="btn btn-outline" id="btnReset" onclick="resetCapture()" style="display:none"><span>🔄</span> Ulangi</button>
+                    </div>
+                </div>
+                <div class="card yield-card">
+                    <div class="card-header"><div class="step-badge">Langkah 2</div><h3>🎯 Target Hasil Panen</h3></div>
+                    <div class="yield-options">
+                        <button class="yield-btn" data-yield="5" onclick="selectYield(5)"><span class="yield-value">5</span><span class="yield-unit">ton/ha</span></button>
+                        <button class="yield-btn active" data-yield="6" onclick="selectYield(6)"><span class="yield-value">6</span><span class="yield-unit">ton/ha</span></button>
+                        <button class="yield-btn" data-yield="7" onclick="selectYield(7)"><span class="yield-value">7</span><span class="yield-unit">ton/ha</span></button>
+                        <button class="yield-btn" data-yield="8" onclick="selectYield(8)"><span class="yield-value">8</span><span class="yield-unit">ton/ha</span></button>
+                    </div>
+                    <div class="field-select">
+                        <label>📍 Sawah</label>
+                        <select id="scanFieldSelect" onchange="updateScanField()">
+                            <option value="default">Sawah Utama</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-accent btn-analyze" id="btnAnalyze" onclick="analyzeLeaf()" disabled>
+                        <span>🧠</span> Analisis Sekarang
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="results" style="display:none">
+                <h2 class="section-title">📊 Hasil Analisis</h2>
+                <div class="results-grid">
+                    <div class="card result-card score-card">
+                        <div class="score-circle"><svg viewBox="0 0 120 120"><circle class="score-bg" cx="60" cy="60" r="54"/><circle class="score-fill" cx="60" cy="60" r="54" id="scoreFill"/></svg><div class="score-value" id="scoreValue">-</div></div>
+                        <h3>Skor BWD</h3><p class="score-label" id="scoreLabel">-</p>
+                    </div>
+                    <div class="card result-card status-card">
+                        <div class="status-icon" id="statusIcon">🌿</div><h3>Status Nitrogen</h3>
+                        <div class="status-badge" id="statusBadge">-</div><p class="status-desc" id="statusDesc">-</p>
+                    </div>
+                    <div class="card result-card fertilizer-card">
+                        <div class="fertilizer-icon">💊</div><h3>Rekomendasi Urea</h3>
+                        <div class="dose-display"><span class="dose-value" id="doseValue">-</span><span class="dose-unit">kg/ha</span></div>
+                        <div class="dose-details">
+                            <div class="detail-row"><span class="detail-label">⏰ Waktu</span><span class="detail-value" id="timingValue">-</span></div>
+                            <div class="detail-row"><span class="detail-label">📝 Catatan</span><span class="detail-value" id="notesValue">-</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card color-analysis-card">
+                    <h3>🎨 Detail Warna</h3>
+                    <div class="color-bars">
+                        <div class="color-bar-group"><label>R</label><div class="bar-track"><div class="bar-fill bar-r" id="barR"></div></div><span class="bar-value" id="valR">-</span></div>
+                        <div class="color-bar-group"><label>G</label><div class="bar-track"><div class="bar-fill bar-g" id="barG"></div></div><span class="bar-value" id="valG">-</span></div>
+                        <div class="color-bar-group"><label>B</label><div class="bar-track"><div class="bar-fill bar-b" id="barB"></div></div><span class="bar-value" id="valB">-</span></div>
+                        <div class="color-bar-group"><label>Greenness</label><div class="bar-track"><div class="bar-fill bar-gi" id="barGI"></div></div><span class="bar-value" id="valGI">-</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== PAGE: CALENDAR ===== -->
+    <main class="page" id="page-calendar">
+        <div class="container">
+            <h2 class="page-title">📅 Kalender Tanaman</h2>
+
+            <!-- Add Planting Date -->
+            <div class="card">
+                <h3>🌱 Tanggal Tanam</h3>
+                <p class="card-desc">Masukkan tanggal tanam untuk generate jadwal otomatis</p>
+                <div class="input-row">
+                    <input type="date" id="plantingDate" class="input-field">
+                    <select id="calFieldSelect" class="input-field">
+                        <option value="default">Sawah Utama</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="setPlantingDate()">Set Jadwal</button>
+                </div>
+            </div>
+
+            <!-- Growth Timeline -->
+            <div class="card" id="timelineCard" style="display:none">
+                <h3>🌾 Timeline Pertumbuhan</h3>
+                <div class="timeline" id="growthTimeline"></div>
+            </div>
+
+            <!-- Schedule List -->
+            <div class="card" id="scheduleCard" style="display:none">
+                <h3>🗓️ Jadwal Scan & Pemupukan</h3>
+                <div class="schedule-list" id="scheduleList"></div>
+            </div>
+
+            <!-- IRRI Reference -->
+            <div class="card">
+                <h3>📋 Referensi Dosis Urea IRRI</h3>
+                <div class="table-wrapper">
+                    <table class="dosage-table">
+                        <thead><tr><th>BWD</th><th>5 t/ha</th><th>6 t/ha</th><th>7 t/ha</th><th>8 t/ha</th></tr></thead>
+                        <tbody>
+                            <tr class="row-deficient"><td><span class="bwd-chip chip-low">2—3</span></td><td>75</td><td>100</td><td>125</td><td>150</td></tr>
+                            <tr class="row-adequate"><td><span class="bwd-chip chip-mid">3—4</span></td><td>50</td><td>75</td><td>100</td><td>125</td></tr>
+                            <tr class="row-optimum"><td><span class="bwd-chip chip-high">4—5</span></td><td>0</td><td>0-50</td><td>50</td><td>50</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== PAGE: DASHBOARD ===== -->
+    <main class="page" id="page-dashboard">
+        <div class="container">
+            <h2 class="page-title">📊 Dashboard</h2>
+
+            <!-- Summary Stats -->
+            <div class="dash-stats">
+                <div class="dash-stat"><span class="dash-stat-val" id="dashTotalScans">0</span><span class="dash-stat-lbl">Total Scan</span></div>
+                <div class="dash-stat"><span class="dash-stat-val" id="dashAvgBwd">-</span><span class="dash-stat-lbl">Rata-rata BWD</span></div>
+                <div class="dash-stat"><span class="dash-stat-val" id="dashTotalUrea">0</span><span class="dash-stat-lbl">Total Urea (kg)</span></div>
+                <div class="dash-stat"><span class="dash-stat-val" id="dashSavings">Rp 0</span><span class="dash-stat-lbl">Estimasi Hemat</span></div>
+            </div>
+
+            <!-- BWD Trend Chart -->
+            <div class="card">
+                <h3>📈 Trend Skor BWD</h3>
+                <div class="chart-container">
+                    <canvas id="bwdChart" height="200"></canvas>
+                    <div class="chart-empty" id="chartEmpty">Belum ada data. Mulai scan untuk melihat tren!</div>
+                </div>
+            </div>
+
+            <!-- Scan History -->
+            <div class="card">
+                <h3>📋 Riwayat Scan</h3>
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">Belum ada riwayat scan.</div>
+                </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="card">
+                <h3>💰 Kalkulasi Biaya Pupuk</h3>
+                <div class="cost-calc">
+                    <div class="input-row">
+                        <label>Harga Urea (Rp/kg)</label>
+                        <input type="number" id="ureaPrice" class="input-field" value="3500" onchange="recalcCost()">
+                    </div>
+                    <div class="input-row">
+                        <label>Luas Sawah (ha)</label>
+                        <input type="number" id="fieldArea" class="input-field" value="1" step="0.1" onchange="recalcCost()">
+                    </div>
+                    <div class="cost-result" id="costResult">
+                        <div class="cost-row"><span>Total Urea Direkomendasikan</span><span id="costUrea">-</span></div>
+                        <div class="cost-row"><span>Biaya dengan BWD AI</span><span id="costWithBwd" class="cost-green">-</span></div>
+                        <div class="cost-row"><span>Biaya tanpa BWD (estimasi)</span><span id="costWithout">-</span></div>
+                        <div class="cost-row cost-savings"><span>💰 Estimasi Penghematan</span><span id="costSaved" class="cost-green">-</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== PAGE: PROFILE ===== -->
+    <main class="page" id="page-profile">
+        <div class="container">
+            <h2 class="page-title">👤 Profil</h2>
+
+            <!-- Profile Card -->
+            <div class="card profile-header-card">
+                <div class="profile-avatar" id="profileAvatar">👨‍🌾</div>
+                <input type="text" id="profileName" class="profile-name-input" placeholder="Nama Anda" onchange="saveProfile()">
+                <p class="profile-joined">Bergabung April 2026</p>
+                <!-- Achievements -->
+                <div class="achievements">
+                    <span class="badge-item" id="badge1" title="Scan Pertama">📸</span>
+                    <span class="badge-item locked" id="badge2" title="10 Scan">🔟</span>
+                    <span class="badge-item locked" id="badge3" title="Streak 7 Hari">🔥</span>
+                    <span class="badge-item locked" id="badge4" title="Hemat 100kg">💰</span>
+                    <span class="badge-item locked" id="badge5" title="Master Presisi">🏆</span>
+                </div>
+            </div>
+
+            <!-- Farm Management -->
+            <div class="card">
+                <h3>🌾 Sawah Saya</h3>
+                <div class="farm-list" id="farmList"></div>
+                <button class="btn btn-outline btn-add-farm" onclick="addFarm()"><span>+</span> Tambah Sawah</button>
+            </div>
+
+            <!-- Settings -->
+            <div class="card">
+                <h3>⚙️ Pengaturan</h3>
+                <div class="setting-row">
+                    <span>🌐 Bahasa</span>
+                    <select class="input-field input-sm"><option>Bahasa Indonesia</option></select>
+                </div>
+                <div class="setting-row">
+                    <span>🔔 Notifikasi</span>
+                    <label class="toggle"><input type="checkbox" id="notifToggle" checked onchange="saveProfile()"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="setting-row">
+                    <span>📏 Satuan Luas</span>
+                    <select class="input-field input-sm"><option>Hektar (ha)</option><option>Are</option></select>
+                </div>
+            </div>
+
+            <!-- Data Export -->
+            <div class="card">
+                <h3>📤 Export Data</h3>
+                <p class="card-desc">Download riwayat scan dan rekomendasi</p>
+                <button class="btn btn-outline" onclick="exportData()">📥 Download CSV</button>
+            </div>
+
+            <!-- About -->
+            <div class="card about-mini">
+                <h3>🌾 Tentang BWD AI</h3>
+                <p>Sistem digitalisasi Bagan Warna Daun berbasis AI untuk pertanian presisi.</p>
+                <div class="team-mini">
+                    <span>👨‍🔬 Teguh Iman S.</span> · <span>💻 Fakhri M.B.</span> · <span>🔬 Restu</span>
+                </div>
+                <p class="version">v0.1.0 — April 2026</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== BOTTOM NAVIGATION ===== -->
+    <nav class="bottom-nav">
+        <button class="nav-tab active" onclick="showPage('home')" data-page="home">
+            <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+        </button>
+        <button class="nav-tab" onclick="showPage('scan')" data-page="scan">
+            <span class="nav-icon">📸</span><span class="nav-label">Scan</span>
+        </button>
+        <button class="nav-tab" onclick="showPage('calendar')" data-page="calendar">
+            <span class="nav-icon">📅</span><span class="nav-label">Kalender</span>
+        </button>
+        <button class="nav-tab" onclick="showPage('dashboard')" data-page="dashboard">
+            <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+        </button>
+        <button class="nav-tab" onclick="showPage('profile')" data-page="profile">
+            <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+        </button>
+    </nav>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
