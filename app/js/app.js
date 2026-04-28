@@ -7,9 +7,9 @@ let capturedImage = null;
 let analysisResult = null;
 
 function defaultState() {
-    return { profile: { name: 'Petani', notifications: true }, farms: [{ id: 'default', name: 'Sawah Utama', area: 1, variety: 'IR64', location: '' }], scans: [], plantings: [], selectedYield: 6, ureaPrice: 3500 };
+    return { profile: { name: 'Petani', notifications: true }, farms: [{ id: 'default', name: 'Sawah Utama', area: 1, variety: 'IR64', location: '' }], scans: [], plantings: [], fertLogs: [], selectedYield: 6, ureaPrice: 3500 };
 }
-function loadState() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || defaultState(); } catch { return defaultState(); } }
+function loadState() { try { const s = JSON.parse(localStorage.getItem(STORE_KEY)) || defaultState(); if(!s.fertLogs) s.fertLogs=[]; return s; } catch { return defaultState(); } }
 function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 
 // === Navigation ===
@@ -85,9 +85,20 @@ function analyzeLeaf() {
         const colorData = extractColors(ctx.getImageData(0, 0, canvas.width, canvas.height));
         const bwdScore = classifyBWD(colorData);
         analysisResult = { bwdScore, colorData };
+        
+        // Generate Thumbnail (64x64)
+        const thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = 64; thumbCanvas.height = 64;
+        const thumbCtx = thumbCanvas.getContext('2d');
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        thumbCtx.drawImage(img, sx, sy, size, size, 0, 0, 64, 64);
+        const thumbData = thumbCanvas.toDataURL('image/jpeg', 0.5);
+
         // Save scan
         const field = document.getElementById('scanFieldSelect').value;
-        state.scans.push({ id: Date.now(), date: new Date().toISOString(), bwd: bwdScore, field, yield: state.selectedYield, dose: getDose(bwdScore, state.selectedYield), colors: colorData });
+        state.scans.push({ id: Date.now(), date: new Date().toISOString(), bwd: bwdScore, field, yield: state.selectedYield, dose: getDose(bwdScore, state.selectedYield), colors: colorData, thumb: thumbData });
         saveState(); checkAchievements();
         setTimeout(() => { displayResults(bwdScore, colorData); btn.innerHTML = '<span>🧠</span> Analisis Sekarang'; btn.disabled = false; btn.classList.remove('analyzing'); }, 1000);
     };
@@ -180,10 +191,32 @@ function refreshCalendar() {
     let schHtml = '';
     schedItems.forEach(s => {
         const dt = new Date(d0); dt.setDate(dt.getDate()+s.hst);
-        const done = hst >= s.hst;
-        schHtml += `<div class="sched-item"><div class="sched-icon">${s.icon}</div><div class="sched-body"><div class="sched-title">${s.title}</div><div class="sched-date">${formatDate(dt)} (${s.hst} HST)</div></div><span class="sched-status ${done?'done':'pending'}">${done?'✅ Done':'⏳ Pending'}</span></div>`;
+        const logId = `${field}_${s.hst}`;
+        const isLogged = state.fertLogs && state.fertLogs.includes(logId);
+        
+        let statusHtml = '';
+        if (isLogged) {
+            statusHtml = `<span class="sched-status done">✅ Selesai</span>`;
+        } else if (hst >= s.hst) {
+            if (s.type === 'fert') {
+                statusHtml = `<button class="btn btn-primary" style="padding:4px 10px; font-size:11px; border-radius:12px; margin-left:auto; flex:none" onclick="markFertilized('${logId}')">Tandai Dipupuk</button>`;
+            } else {
+                statusHtml = `<span class="sched-status pending">⚠️ Terlewat</span>`;
+            }
+        } else {
+            statusHtml = `<span class="sched-status pending">⏳ Mendatang</span>`;
+        }
+        
+        schHtml += `<div class="sched-item"><div class="sched-icon">${s.icon}</div><div class="sched-body"><div class="sched-title">${s.title}</div><div class="sched-date">${formatDate(dt)} (${s.hst} HST)</div></div>${statusHtml}</div>`;
     });
     document.getElementById('scheduleList').innerHTML = schHtml;
+}
+
+function markFertilized(logId) {
+    if(!state.fertLogs) state.fertLogs=[];
+    state.fertLogs.push(logId);
+    saveState();
+    refreshCalendar();
 }
 
 // === Dashboard ===
@@ -235,7 +268,8 @@ function refreshDashboard() {
     else { scans.slice().reverse().slice(0,20).forEach(s => {
         const r=Math.max(2,Math.min(5,Math.round(s.bwd))), c=N_STATUS[r].color;
         const farm = state.farms.find(f=>f.id===s.field);
-        hHtml += `<div class="hist-item"><div class="hist-bwd" style="background:${c}">${s.bwd.toFixed(1)}</div><div class="hist-body"><div class="hist-field">${farm?farm.name:s.field}</div><div class="hist-date">${formatDate(new Date(s.date))}</div></div><div class="hist-dose">${s.dose||0} kg/ha</div></div>`;
+        const thumbHtml = s.thumb ? `<img src="${s.thumb}" class="scan-thumb" style="border:2px solid ${c}">` : `<div class="hist-bwd" style="background:${c}">${s.bwd.toFixed(1)}</div>`;
+        hHtml += `<div class="hist-item">${thumbHtml}<div class="hist-body"><div class="hist-field">${farm?farm.name:s.field} <span style="font-size:11px;color:${c};font-weight:700">· BWD ${s.bwd.toFixed(1)}</span></div><div class="hist-date">${formatDate(new Date(s.date))}</div></div><div class="hist-dose">${s.dose||0} kg/ha</div></div>`;
     }); }
     document.getElementById('historyList').innerHTML = hHtml;
     recalcCost();
@@ -375,7 +409,8 @@ function refreshHome() {
     if(scans.length===0){ rsHtml='<div class="reminder-empty">Belum ada scan. Tap 📸 untuk mulai!</div>'; }
     else { scans.slice().reverse().slice(0,5).forEach(s => {
         const r=Math.max(2,Math.min(5,Math.round(s.bwd))),c=N_STATUS[r].color,farm=state.farms.find(f=>f.id===s.field);
-        rsHtml+=`<div class="scan-item"><div class="scan-bwd" style="background:${c}">${s.bwd.toFixed(1)}</div><div class="scan-body"><div class="scan-field">${farm?farm.name:s.field}</div><div class="scan-meta">${formatDate(new Date(s.date))}</div></div><div class="scan-dose">${s.dose} kg/ha</div></div>`;
+        const thumbHtml = s.thumb ? `<img src="${s.thumb}" class="scan-thumb" style="border:2px solid ${c}">` : `<div class="scan-bwd" style="background:${c}">${s.bwd.toFixed(1)}</div>`;
+        rsHtml+=`<div class="scan-item">${thumbHtml}<div class="scan-body"><div class="scan-field">${farm?farm.name:s.field} <span style="font-size:11px;color:${c};font-weight:700">· BWD ${s.bwd.toFixed(1)}</span></div><div class="scan-meta">${formatDate(new Date(s.date))}</div></div><div class="scan-dose">${s.dose} kg/ha</div></div>`;
     }); }
     document.getElementById('recentScans').innerHTML = rsHtml;
 }
