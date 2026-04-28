@@ -1,5 +1,7 @@
 # 🌾 BWD AI — Digitalisasi Bagan Warna Daun Berbasis Artificial Intelligence
 
+**🌐 Live Demo / Prototype:** [https://fbudimannn.github.io/BWD-AI/](https://fbudimannn.github.io/BWD-AI/)
+
 > Sistem cerdas untuk menentukan status nitrogen tanaman padi melalui analisis citra daun menggunakan AI/Computer Vision.
 
 ## 📋 Overview

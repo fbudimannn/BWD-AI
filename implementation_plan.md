@@ -61,6 +61,19 @@ flowchart TD
     A --> B --> C --> D --> E --> F --> G --> H --> I
 ```
 
+### 📍 Protokol Sampling Lapangan (Multi-Leaf Batching)
+
+Poin sangat penting: **Petani tidak memupuk berdasarkan 1 daun saja**. Sawah itu luas (berpetak-petak), jadi aplikasinya harus mengakomodasi metode sampling yang benar secara agrikultur (seperti standar IRRI):
+
+1. **Metode Sampling**: Petani diminta mengambil **10 sampel daun** secara acak (diagonal atau zigzag) dari satu petak sawah.
+2. **Batch Processing di Aplikasi**: 
+   - UX aplikasi bukan sekadar "Scan 1 Foto → Keluar Hasil".
+   - Melainkan: "Sesi Scan Petak A (Sampel 1/10, 2/10... 10/10)".
+3. **Agregasi AI**: AI akan menghitung BWD dari ke-10 foto tersebut, lalu mengambil **Rata-rata (Average/Majority Vote)**.
+4. **Distribusi Merata**: Dari rata-rata tersebut, aplikasi mengeluarkan dosis Urea per Hektar (atau Are), dan memberi panduan kepada petani untuk **menyebarkan pupuk secara merata (broadcasting)** di seluruh petak sawah tersebut, bukan cuma di area daun yang difoto.
+
+*Catatan: Konsep "Batch Scan 10 Daun" ini akan diimplementasikan sebagai fitur utama di Mobile App Native (Fase 5).*
+
 ### Technical Mapping per Step
 
 | Step | Component | Technology | Detail |
