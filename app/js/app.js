@@ -116,7 +116,11 @@ function analyzeLeaf() {
             }, 1000);
         } catch (err) {
             console.error(err);
-            alert('Gagal memproses gambar. Pastikan gambar valid.');
+            if (err.message === "NOT_A_LEAF") {
+                alert('Warna daun hijau tidak terdeteksi. Mohon pastikan memfoto daun padi dari jarak dekat.');
+            } else {
+                alert('Gagal memproses gambar. Pastikan gambar valid.');
+            }
             btn.innerHTML = '<span><i class="ph-fill ph-brain"></i></span> Analisis Sekarang'; 
             btn.disabled = false; btn.classList.remove('analyzing');
         }
@@ -131,8 +135,14 @@ function analyzeLeaf() {
 
 function extractColors(imageData) {
     const d = imageData.data; let tR=0,tG=0,tB=0,n=0;
+    const totalPixels = d.length / 4;
     for (let i=0;i<d.length;i+=4) { const r=d[i],g=d[i+1],b=d[i+2]; if(d[i+3]<128) continue; if(g>40&&g>r*0.7) { tR+=r;tG+=g;tB+=b;n++; } }
-    if(n<100) { n=0; tR=0; tG=0; tB=0; for(let i=0;i<d.length;i+=4){tR+=d[i];tG+=d[i+1];tB+=d[i+2];n++;} }
+    
+    // Validasi Daun (Leaf Detection): minimal 5% area foto harus berwarna dominan hijau
+    if (n / totalPixels < 0.05) {
+        throw new Error("NOT_A_LEAF");
+    }
+    
     const mR=n?tR/n:0, mG=n?tG/n:0, mB=n?tB/n:0;
     const hsv = rgbToHsv(mR,mG,mB);
     return { meanR:Math.round(mR)||0, meanG:Math.round(mG)||0, meanB:Math.round(mB)||0, meanH:hsv[0]||0, greenness:Math.round(2*mG-mR-mB)||0 };
