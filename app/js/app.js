@@ -409,7 +409,8 @@ function refreshProfile() {
     // Farms
     let fHtml = '';
     state.farms.forEach(f => {
-        fHtml += `<div class="farm-item"><div class="farm-icon"><i class="ph-fill ph-plant"></i></div><div class="farm-body"><div class="farm-name">${f.name}</div><div class="farm-detail">${f.area} ha · ${f.variety} · ${f.location||'Lokasi belum diset'}</div></div><button onclick="editFarm('${f.id}')" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer"><i class="ph-fill ph-pencil-simple"></i></button></div>`;
+        const thumbHtml = f.photo ? `<img src="${f.photo}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="ph-fill ph-plant"></i>`;
+        fHtml += `<div class="farm-item"><div class="farm-icon">${thumbHtml}</div><div class="farm-body"><div class="farm-name">${f.name}</div><div class="farm-detail">${f.area} ha · ${f.variety} · ${f.location||'Lokasi belum diset'}</div></div><button onclick="openFarmModal('${f.id}')" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer"><i class="ph-fill ph-pencil-simple"></i></button></div>`;
     });
     document.getElementById('farmList').innerHTML = fHtml;
     checkAchievements();
@@ -421,47 +422,105 @@ function saveProfile() {
     saveState();
 }
 
-function addFarm() {
-    const name = prompt('Nama sawah baru:');
-    if (!name) return;
-    const area = prompt('Luas (ha):', '0.5') || '0.5';
-    state.farms.push({ id: 'farm_'+Date.now(), name, area: parseFloat(area), variety: 'IR64', location: '' });
+function openFarmModal(id) {
+    const isNew = id === 'new';
+    document.getElementById('farmModalTitle').innerHTML = isNew ? `<i class="ph-fill ph-plant" style="color:var(--accent); margin-right:8px;"></i> Sawah Baru` : `<i class="ph-fill ph-pencil-simple" style="color:var(--accent); margin-right:8px;"></i> Edit Sawah`;
+    
+    const farm = isNew ? { id: '', name: '', area: '', variety: '', location: '', photo: '' } : state.farms.find(f => f.id === id);
+    if (!farm) return;
+    
+    document.getElementById('farmInputId').value = isNew ? '' : farm.id;
+    document.getElementById('farmInputName').value = farm.name;
+    document.getElementById('farmInputArea').value = farm.area;
+    document.getElementById('farmInputVariety').value = farm.variety || 'IR64';
+    document.getElementById('farmInputLocation').value = farm.location || '';
+    
+    const imgEl = document.getElementById('farmPhotoImg');
+    const iconEl = document.getElementById('farmPhotoIcon');
+    if (farm.photo) {
+        imgEl.src = farm.photo; imgEl.style.display = 'block'; iconEl.style.display = 'none';
+    } else {
+        imgEl.src = ''; imgEl.style.display = 'none'; iconEl.style.display = 'block';
+    }
+    
+    const btnDel = document.getElementById('btnDeleteFarm');
+    if (isNew || id === 'default') {
+        btnDel.style.display = 'none';
+    } else {
+        btnDel.style.display = 'block';
+    }
+    
+    document.getElementById('farmModal').style.display = 'flex';
+}
+
+function handleFarmPhotoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.getElementById('farmPhotoCanvas');
+            const ctx = canvas.getContext('2d');
+            const maxW = 300, maxH = 300;
+            let w = img.width, h = img.height;
+            if(w>h){if(w>maxW){h*=maxW/w;w=maxW;}}else{if(h>maxH){w*=maxH/h;h=maxH;}}
+            canvas.width = w; canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            
+            const imgEl = document.getElementById('farmPhotoImg');
+            const iconEl = document.getElementById('farmPhotoIcon');
+            imgEl.src = dataUrl; imgEl.style.display = 'block'; iconEl.style.display = 'none';
+            // We store the dataUrl temporarily in the img src, saveFarmData will pick it up
+        };
+        img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveFarmData() {
+    const id = document.getElementById('farmInputId').value;
+    const name = document.getElementById('farmInputName').value.trim();
+    const area = parseFloat(document.getElementById('farmInputArea').value);
+    const variety = document.getElementById('farmInputVariety').value.trim();
+    const location = document.getElementById('farmInputLocation').value.trim();
+    
+    const imgEl = document.getElementById('farmPhotoImg');
+    const photo = imgEl.style.display === 'block' ? imgEl.src : '';
+    
+    if (!name) return alert('Nama sawah harus diisi!');
+    if (isNaN(area) || area <= 0) return alert('Luas lahan tidak valid!');
+    
+    if (id) {
+        const idx = state.farms.findIndex(f => f.id === id);
+        if (idx >= 0) {
+            state.farms[idx] = { ...state.farms[idx], name, area, variety, location, photo };
+            showToast('Sawah berhasil diperbarui');
+        }
+    } else {
+        const newId = 'farm_' + Date.now();
+        state.farms.push({ id: newId, name, area, variety, location, photo });
+        showToast('Sawah baru berhasil ditambah');
+    }
+    
+    document.getElementById('farmModal').style.display = 'none';
     saveState(); refreshProfile(); populateFarmSelects();
 }
 
-function editFarm(id) {
-    const farmIdx = state.farms.findIndex(f => f.id === id);
-    if (farmIdx < 0) return;
-    const farm = state.farms[farmIdx];
+function deleteFarmData() {
+    const id = document.getElementById('farmInputId').value;
+    if (id === 'default' || !id) return;
     
-    let promptMsg = `Edit Sawah: ${farm.name}\n\nKetik "1" untuk ubah Nama\nKetik "2" untuk ubah Luas`;
-    if (id !== 'default') {
-        promptMsg += `\nKetik "HAPUS" untuk menghapus sawah ini.`;
-    } else {
-        promptMsg += `\n(Catatan: Sawah Utama tidak bisa dihapus, hanya diedit).`;
+    const farm = state.farms.find(f => f.id === id);
+    if (!farm) return;
+    
+    if (confirm(`Yakin ingin menghapus sawah "${farm.name}"? Ini tidak akan menghapus riwayat scan masa lalu.`)) {
+        state.farms = state.farms.filter(f => f.id !== id);
+        document.getElementById('farmModal').style.display = 'none';
+        showToast('Sawah dihapus');
+        saveState(); refreshProfile(); populateFarmSelects();
     }
-    
-    const action = prompt(promptMsg, "1");
-    if (!action) return;
-    
-    if (action === '1') {
-        const newName = prompt('Nama baru:', farm.name);
-        if (newName) farm.name = newName;
-    } else if (action === '2') {
-        const newArea = prompt('Luas baru (ha):', farm.area);
-        if (newArea && !isNaN(parseFloat(newArea))) farm.area = parseFloat(newArea);
-    } else if (action.toUpperCase() === 'HAPUS') {
-        if (id === 'default') {
-            alert('Maaf, Sawah Utama bawaan sistem tidak bisa dihapus. Anda hanya bisa mengubah nama dan luasnya saja.');
-            return;
-        }
-        if (confirm(`Yakin ingin menghapus sawah "${farm.name}"? Ini tidak akan menghapus riwayat scan yang sudah ada.`)) {
-            state.farms.splice(farmIdx, 1);
-            showToast('Sawah dihapus');
-        } else return;
-    }
-    
-    saveState(); refreshProfile(); populateFarmSelects();
 }
 
 function checkAchievements() {

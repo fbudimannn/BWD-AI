@@ -255,7 +255,8 @@ select.input-field{cursor:pointer;appearance:none;background-image:url("data:ima
 .badge-item.locked{opacity:0.4;border-color:#CBD5E1;background:#F1F5F9;filter:grayscale(1)}
 .farm-list .farm-item{display:flex;align-items:center;gap:16px;padding:16px;border-bottom:1px solid var(--border)}
 .farm-item:last-child{border:none}
-.farm-icon{font-size:28px}
+.farm-icon{width:48px;height:48px;border-radius:12px;background:rgba(76,175,80,0.1);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex-shrink:0}
+.farm-icon img{width:100%;height:100%;object-fit:cover}
 .farm-body{flex:1}
 .farm-name{font-size:15px;font-weight:800;color:var(--text-primary)}
 .farm-detail{font-size:13px;color:var(--text-muted);font-weight:500;margin-top:2px}
