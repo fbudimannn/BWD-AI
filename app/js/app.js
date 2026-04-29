@@ -39,12 +39,8 @@ const TIMING = { deficient:'Segera aplikasikan pupuk urea (25 HST/fase anakan ak
 const NOTES = { deficient:'Pupuk disebarkan merata saat sawah macak-macak.', adequate:'Hindari pemupukan saat hujan deras.', optimum:'Fokus pengelolaan air dan hama.', excessive:'Monitor kerebahan tanaman.' };
 
 // === Scanner ===
-function triggerCapture(mode) {
-    if (mode === 'camera') {
-        document.getElementById('imageInputCamera').click();
-    } else {
-        document.getElementById('imageInputGallery').click();
-    }
+function triggerCapture() {
+    document.getElementById('imageInput').click();
 }
 
 function handleImageInput(e) {
@@ -66,8 +62,7 @@ function resetCapture() {
     document.getElementById('capturePlaceholder').style.display = 'block';
     document.getElementById('btnReset').style.display = 'none';
     document.getElementById('btnAnalyze').disabled = true;
-    document.getElementById('imageInputCamera').value = '';
-    document.getElementById('imageInputGallery').value = '';
+    document.getElementById('imageInput').value = '';
     document.getElementById('results').style.display = 'none';
     capturedImage = null; analysisResult = null;
 }

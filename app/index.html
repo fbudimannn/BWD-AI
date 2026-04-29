@@ -119,21 +119,19 @@
             <div class="scanner-grid">
                 <div class="card capture-card">
                     <div class="card-header"><div class="step-badge">Langkah 1</div><h3><i class="ph-fill ph-camera"></i> Ambil Foto Daun</h3></div>
-                    <div class="capture-area" id="captureArea" onclick="if(!capturedImage) triggerCapture('camera')">
-                        <input type="file" id="imageInputCamera" accept="image/*" capture="environment" hidden onchange="handleImageInput(event)">
-                        <input type="file" id="imageInputGallery" accept="image/*" hidden onchange="handleImageInput(event)">
+                    <div class="capture-area" id="captureArea" onclick="if(!capturedImage) triggerCapture()">
+                        <input type="file" id="imageInput" accept="image/*" hidden onchange="handleImageInput(event)">
                         <div class="capture-placeholder" id="capturePlaceholder">
                             <div class="capture-icon"><i class="ph-fill ph-camera"></i></div>
-                            <p>Tap untuk ambil foto daun padi</p>
+                            <p>Tap untuk ambil / pilih foto daun padi</p>
                             <span class="capture-hint">Gunakan daun teratas yang sudah membuka sempurna</span>
                         </div>
                         <img id="previewImage" class="preview-image" style="display:none" alt="Preview">
                         <canvas id="analysisCanvas" style="display:none"></canvas>
                     </div>
-                    <div class="capture-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <button class="btn btn-primary" onclick="triggerCapture('camera')" style="padding: 12px; font-size: 14px;"><span><i class="ph-fill ph-camera"></i></span> Buka Kamera</button>
-                        <button class="btn btn-outline" onclick="triggerCapture('gallery')" style="padding: 12px; font-size: 14px;"><span><i class="ph-fill ph-image"></i></span> Dari Galeri</button>
-                        <button class="btn btn-outline" id="btnReset" onclick="resetCapture()" style="display:none; grid-column: span 2;"><span><i class="ph-fill ph-arrows-clockwise"></i></span> Ulangi Foto</button>
+                    <div class="capture-actions">
+                        <button class="btn btn-primary" onclick="triggerCapture()" style="width:100%;"><span><i class="ph-fill ph-image"></i></span> Pilih / Ambil Foto</button>
+                        <button class="btn btn-outline" id="btnReset" onclick="resetCapture()" style="display:none; width:100%; margin-top:8px;"><span><i class="ph-fill ph-arrows-clockwise"></i></span> Ulangi Foto</button>
                     </div>
                 </div>
                 <div class="card yield-card">
