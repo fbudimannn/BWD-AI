@@ -145,7 +145,15 @@ function extractColors(imageData) {
     
     const mR=n?tR/n:0, mG=n?tG/n:0, mB=n?tB/n:0;
     const hsv = rgbToHsv(mR,mG,mB);
-    return { meanR:Math.round(mR)||0, meanG:Math.round(mG)||0, meanB:Math.round(mB)||0, meanH:hsv[0]||0, greenness:Math.round(2*mG-mR-mB)||0 };
+    
+    // Validasi HSV: Hue harus di rentang kuning-hijau (25°-95°) dan Saturation > 15%
+    const hue = hsv[0]; // 0-180 scale
+    const sat = hsv[1]; // 0-255 scale
+    if (hue < 25 || hue > 95 || sat < 38) { // sat 38/255 ≈ 15%
+        throw new Error("NOT_A_LEAF");
+    }
+    
+    return { meanR:Math.round(mR)||0, meanG:Math.round(mG)||0, meanB:Math.round(mB)||0, meanH:hue, greenness:Math.round(2*mG-mR-mB)||0 };
 }
 
 function classifyBWD(c) {
