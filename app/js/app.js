@@ -186,6 +186,14 @@ function setPlantingDate() {
     saveState(); refreshCalendar(); generateNotifications();
 }
 
+function resetPlantingDate() {
+    const field = document.getElementById('calFieldSelect').value;
+    if (confirm('Anda yakin ingin mereset/menghapus jadwal tanam untuk sawah ini?')) {
+        state.plantings = state.plantings.filter(p => p.field !== field);
+        saveState(); refreshCalendar(); generateNotifications(); showToast('Jadwal berhasil di-reset');
+    }
+}
+
 function refreshCalendar() {
     populateFarmSelects();
     const field = document.getElementById('calFieldSelect').value;
@@ -401,7 +409,7 @@ function refreshProfile() {
     // Farms
     let fHtml = '';
     state.farms.forEach(f => {
-        fHtml += `<div class="farm-item"><div class="farm-icon"><i class="ph-fill ph-plant"></i></div><div class="farm-body"><div class="farm-name">${f.name}</div><div class="farm-detail">${f.area} ha · ${f.variety} · ${f.location||'Lokasi belum diset'}</div></div></div>`;
+        fHtml += `<div class="farm-item"><div class="farm-icon"><i class="ph-fill ph-plant"></i></div><div class="farm-body"><div class="farm-name">${f.name}</div><div class="farm-detail">${f.area} ha · ${f.variety} · ${f.location||'Lokasi belum diset'}</div></div><button onclick="editFarm('${f.id}')" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer"><i class="ph-fill ph-pencil-simple"></i></button></div>`;
     });
     document.getElementById('farmList').innerHTML = fHtml;
     checkAchievements();
@@ -418,6 +426,31 @@ function addFarm() {
     if (!name) return;
     const area = prompt('Luas (ha):', '0.5') || '0.5';
     state.farms.push({ id: 'farm_'+Date.now(), name, area: parseFloat(area), variety: 'IR64', location: '' });
+    saveState(); refreshProfile(); populateFarmSelects();
+}
+
+function editFarm(id) {
+    if (id === 'default') return alert('Sawah Utama bawaan tidak bisa diedit/dihapus.');
+    const farmIdx = state.farms.findIndex(f => f.id === id);
+    if (farmIdx < 0) return;
+    const farm = state.farms[farmIdx];
+    
+    const action = prompt(`Edit Sawah: ${farm.name}\n\nKetik "1" untuk ubah Nama\nKetik "2" untuk ubah Luas\nKetik "HAPUS" untuk menghapus sawah ini.`, "1");
+    if (!action) return;
+    
+    if (action === '1') {
+        const newName = prompt('Nama baru:', farm.name);
+        if (newName) farm.name = newName;
+    } else if (action === '2') {
+        const newArea = prompt('Luas baru (ha):', farm.area);
+        if (newArea && !isNaN(parseFloat(newArea))) farm.area = parseFloat(newArea);
+    } else if (action.toUpperCase() === 'HAPUS') {
+        if (confirm(`Yakin ingin menghapus sawah "${farm.name}"? Ini tidak akan menghapus riwayat scan yang sudah ada.`)) {
+            state.farms.splice(farmIdx, 1);
+            showToast('Sawah dihapus');
+        } else return;
+    }
+    
     saveState(); refreshProfile(); populateFarmSelects();
 }
 
@@ -532,6 +565,9 @@ function openHistoryModal(type, id) {
     document.getElementById('modalDose').textContent = dose;
     document.getElementById('modalInfo').textContent = info;
     
+    const btnDel = document.getElementById('btnDeleteHistory');
+    if(btnDel) { btnDel.dataset.id = id; btnDel.dataset.type = type; }
+    
     const imgEl = document.getElementById('modalThumb');
     const iconEl = document.getElementById('modalThumbIcon');
     if (thumb) { imgEl.src = thumb; imgEl.style.display = 'block'; iconEl.style.display = 'none'; }
@@ -545,6 +581,30 @@ function showToast(message) {
     document.getElementById('toastText').textContent = message;
     toast.style.transform = 'translateX(-50%) translateY(0)';
     setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(-100px)'; }, 3500);
+}
+
+function deleteHistoryData() {
+    const btnDel = document.getElementById('btnDeleteHistory');
+    if(!btnDel) return;
+    const id = btnDel.dataset.id;
+    const type = btnDel.dataset.type;
+    
+    if(confirm('Yakin ingin menghapus laporan/data ini? Penghapusan akan mempengaruhi perhitungan total di Dashboard.')) {
+        if(type === 'scan') {
+            state.scans = state.scans.filter(s => s.id != id);
+        } else if(type === 'fert') {
+            state.fertLogs = state.fertLogs.filter(f => (f.id || f) !== id);
+        }
+        saveState();
+        document.getElementById('historyModal').style.display = 'none';
+        showToast('Data berhasil dihapus');
+        
+        // Refresh relevant views
+        refreshHome();
+        refreshCalendar();
+        refreshDashboard();
+        recalcCost();
+    }
 }
 
 // === Helpers ===

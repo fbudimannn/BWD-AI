@@ -201,6 +201,7 @@
                         <option value="default">Sawah Utama</option>
                     </select>
                     <button class="btn btn-primary" onclick="setPlantingDate()">Set Jadwal</button>
+                    <button class="btn btn-outline" onclick="resetPlantingDate()" style="padding: 12px; color: #ef4444; border-color: #ef4444;"><i class="ph-fill ph-trash"></i></button>
                 </div>
             </div>
 
@@ -394,6 +395,7 @@
                 <div style="margin-top:4px;"><i class="ph-fill ph-calendar"></i> Tanggal: <strong id="modalDate" style="color:var(--text)">10 Mei 2026</strong></div>
                 <div style="margin-top:4px;"><i class="ph-fill ph-info"></i> Info: <span id="modalInfo">Disarankan 75 kg/ha.</span></div>
             </div>
+            <button id="btnDeleteHistory" class="btn" style="width:100%; margin-top:20px; background:#fef2f2; color:#ef4444; border:1px solid #fecaca;" onclick="deleteHistoryData()"><i class="ph-fill ph-trash"></i> Hapus Data Ini</button>
         </div>
     </div>
 
