@@ -132,7 +132,7 @@ function displayResults(bwd, colors) {
     const sf = document.getElementById('scoreFill'); sf.style.strokeDashoffset=offset; sf.style.stroke=s.color;
     document.getElementById('scoreValue').textContent=bwd.toFixed(1); document.getElementById('scoreValue').style.color=s.color;
     document.getElementById('scoreLabel').textContent=`Skala BWD ${bwd.toFixed(1)} / 5.0`;
-    document.getElementById('statusIcon').textContent=s.icon;
+    document.getElementById('statusIcon').innerHTML=s.icon;
     const sb=document.getElementById('statusBadge'); sb.textContent=s.label; sb.style.background=s.color+'25'; sb.style.color=s.color;
     document.getElementById('statusDesc').textContent=s.desc;
     const dose = getDose(bwd, state.selectedYield);
