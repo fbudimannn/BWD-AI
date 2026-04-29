@@ -83,19 +83,20 @@ function analyzeLeaf() {
             const canvas = document.getElementById('analysisCanvas');
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
             const scale = Math.min(300/img.width, 300/img.height, 1);
-            canvas.width = Math.round(img.width*scale); canvas.height = Math.round(img.height*scale);
+            canvas.width = Math.max(1, Math.round(img.width*scale)); 
+            canvas.height = Math.max(1, Math.round(img.height*scale));
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             const colorData = extractColors(ctx.getImageData(0, 0, canvas.width, canvas.height));
-            const bwdScore = classifyBWD(colorData);
+            const bwdScore = classifyBWD(colorData) || 2; // ensure not NaN
             analysisResult = { bwdScore, colorData };
             
             // Generate Thumbnail (64x64)
             const thumbCanvas = document.createElement('canvas');
             thumbCanvas.width = 64; thumbCanvas.height = 64;
             const thumbCtx = thumbCanvas.getContext('2d');
-            const size = Math.min(img.width, img.height);
-            const sx = (img.width - size) / 2;
-            const sy = (img.height - size) / 2;
+            const size = Math.max(1, Math.min(img.width, img.height));
+            const sx = Math.max(0, (img.width - size) / 2);
+            const sy = Math.max(0, (img.height - size) / 2);
             thumbCtx.drawImage(img, sx, sy, size, size, 0, 0, 64, 64);
             const thumbData = thumbCanvas.toDataURL('image/jpeg', 0.5);
 
@@ -103,17 +104,27 @@ function analyzeLeaf() {
             const field = document.getElementById('scanFieldSelect').value;
             state.scans.push({ id: Date.now(), date: new Date().toISOString(), bwd: bwdScore, field, yield: state.selectedYield, dose: getDose(bwdScore, state.selectedYield), colors: colorData, thumb: thumbData });
             saveState(); checkAchievements();
+            
             setTimeout(() => { 
-                displayResults(bwdScore, colorData); 
+                try {
+                    displayResults(bwdScore, colorData); 
+                } catch(e) {
+                    console.error("Display error:", e);
+                }
                 btn.innerHTML = '<span><i class="ph-fill ph-brain"></i></span> Analisis Sekarang'; 
                 btn.disabled = false; btn.classList.remove('analyzing'); 
             }, 1000);
         } catch (err) {
             console.error(err);
-            alert('Gagal memproses gambar. Pastikan izin kamera diberikan atau pilih foto yang jelas.');
-            btn.innerHTML = '<span><i class="ph-fill ph-camera"></i></span> Ulangi Scan'; 
+            alert('Gagal memproses gambar. Pastikan gambar valid.');
+            btn.innerHTML = '<span><i class="ph-fill ph-brain"></i></span> Analisis Sekarang'; 
             btn.disabled = false; btn.classList.remove('analyzing');
         }
+    };
+    img.onerror = function() {
+        alert('Gagal memuat gambar. Format mungkin tidak didukung (misal HEIC).');
+        btn.innerHTML = '<span><i class="ph-fill ph-brain"></i></span> Analisis Sekarang'; 
+        btn.disabled = false; btn.classList.remove('analyzing');
     };
     img.src = capturedImage;
 }
@@ -121,10 +132,10 @@ function analyzeLeaf() {
 function extractColors(imageData) {
     const d = imageData.data; let tR=0,tG=0,tB=0,n=0;
     for (let i=0;i<d.length;i+=4) { const r=d[i],g=d[i+1],b=d[i+2]; if(d[i+3]<128) continue; if(g>40&&g>r*0.7) { tR+=r;tG+=g;tB+=b;n++; } }
-    if(n<100) { n=0; for(let i=0;i<d.length;i+=4){tR+=d[i];tG+=d[i+1];tB+=d[i+2];n++;} }
+    if(n<100) { n=0; tR=0; tG=0; tB=0; for(let i=0;i<d.length;i+=4){tR+=d[i];tG+=d[i+1];tB+=d[i+2];n++;} }
     const mR=n?tR/n:0, mG=n?tG/n:0, mB=n?tB/n:0;
     const hsv = rgbToHsv(mR,mG,mB);
-    return { meanR:Math.round(mR), meanG:Math.round(mG), meanB:Math.round(mB), meanH:hsv[0]||0, greenness:Math.round(2*mG-mR-mB) };
+    return { meanR:Math.round(mR)||0, meanG:Math.round(mG)||0, meanB:Math.round(mB)||0, meanH:hsv[0]||0, greenness:Math.round(2*mG-mR-mB)||0 };
 }
 
 function classifyBWD(c) {
