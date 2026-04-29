@@ -7,9 +7,9 @@ let capturedImage = null;
 let analysisResult = null;
 
 function defaultState() {
-    return { profile: { name: 'Petani', notifications: true }, farms: [{ id: 'default', name: 'Sawah Utama', area: 1, variety: 'IR64', location: '' }], scans: [], plantings: [], fertLogs: [], selectedYield: 6, ureaPrice: 3500 };
+    return { profile: { name: 'Petani', notifications: true }, farms: [{ id: 'default', name: 'Sawah Utama', area: 1, variety: 'IR64', location: '' }], scans: [], plantings: [], fertLogs: [], seasons: [], selectedYield: 6, ureaPrice: 3500 };
 }
-function loadState() { try { const s = JSON.parse(localStorage.getItem(STORE_KEY)) || defaultState(); if(!s.fertLogs) s.fertLogs=[]; return s; } catch { return defaultState(); } }
+function loadState() { try { const s = JSON.parse(localStorage.getItem(STORE_KEY)) || defaultState(); if(!s.fertLogs) s.fertLogs=[]; if(!s.seasons) s.seasons=[]; return s; } catch { return defaultState(); } }
 function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 
 // === Navigation ===
@@ -242,10 +242,13 @@ function refreshCalendar() {
     populateFarmSelects();
     const field = document.getElementById('calFieldSelect').value;
     const planting = state.plantings.find(p=>p.field===field);
-    if (!planting) { document.getElementById('timelineCard').style.display='none'; document.getElementById('scheduleCard').style.display='none'; return; }
+    if (!planting) { document.getElementById('timelineCard').style.display='none'; document.getElementById('scheduleCard').style.display='none'; document.getElementById('seasonActionCard').style.display='none'; renderSeasonHistory(); return; }
     document.getElementById('timelineCard').style.display='block'; document.getElementById('scheduleCard').style.display='block';
+    document.getElementById('seasonActionCard').style.display='block';
     const d0 = new Date(planting.date), today = new Date();
     const hst = Math.floor((today-d0)/(1000*60*60*24));
+    if (!planting.overrides) planting.overrides = {};
+    if (!planting.notes) planting.notes = [];
     const stages = [
         {name:'Tanam',hst:0,icon:'<i class="ph-fill ph-seedling"></i>',desc:'Hari penanaman'},
         {name:'Anakan Aktif',hst:25,icon:'<i class="ph-fill ph-camera"></i>',desc:'Scan BWD #1 — waktu pemupukan susulan'},
@@ -257,11 +260,26 @@ function refreshCalendar() {
     ];
     let tlHtml = '';
     stages.forEach(s => {
-        const stageDate = new Date(d0); stageDate.setDate(stageDate.getDate()+s.hst);
+        const overrideHst = planting.overrides[s.hst];
+        const stageDate = new Date(d0);
+        if (overrideHst) { stageDate.setTime(new Date(overrideHst).getTime()); } else { stageDate.setDate(stageDate.getDate()+s.hst); }
         const cls = hst>=s.hst+5?'past':hst>=s.hst-2?'current':'future';
         const badge = cls==='past'?'done':cls==='current'?'active':'upcoming';
         const badgeText = cls==='past'?'<i class="ph-fill ph-check-circle"></i> Selesai':cls==='current'?'<i class="ph-fill ph-map-pin"></i> Saat Ini':'<i class="ph-fill ph-hourglass"></i> Mendatang';
-        tlHtml += `<div class="timeline-item ${cls}"><div class="tl-title">${s.icon} ${s.name} (${s.hst} HST)</div><div class="tl-date">${formatDate(stageDate)}</div><div class="tl-desc">${s.desc}</div><span class="tl-badge ${badge}">${badgeText}</span></div>`;
+        const phaseNotes = planting.notes.filter(n => n.hst === s.hst);
+        let notesHtml = '';
+        if (phaseNotes.length > 0) {
+            notesHtml = '<div style="margin-top:8px;">';
+            phaseNotes.forEach(n => {
+                notesHtml += `<div style="background:#f0fdf4; border-radius:8px; padding:6px 10px; margin-top:4px; font-size:12px; color:#166534;">`;
+                if (n.photo) notesHtml += `<img src="${n.photo}" style="width:100%; border-radius:6px; margin-bottom:4px; max-height:80px; object-fit:cover;">`;
+                notesHtml += `<div>${n.text || ''}</div><div style="font-size:10px; color:#94a3b8; margin-top:2px;">${formatDate(new Date(n.date))}</div></div>`;
+            });
+            notesHtml += '</div>';
+        }
+        const editBtn = `<button onclick="openTimelineNote('${field}', ${s.hst}, '${s.name}')" style="background:none;border:none;color:var(--primary);font-size:14px;cursor:pointer;padding:2px 6px;border-radius:8px;margin-left:6px;" title="Edit / Catatan"><i class="ph-fill ph-pencil-simple"></i></button>`;
+        const overrideTag = overrideHst ? ' <span style="font-size:10px;color:#f59e0b;font-weight:600;">(diubah)</span>' : '';
+        tlHtml += `<div class="timeline-item ${cls}"><div class="tl-title">${s.icon} ${s.name} (${s.hst} HST)${editBtn}</div><div class="tl-date">${formatDate(stageDate)}${overrideTag}</div><div class="tl-desc">${s.desc}</div><span class="tl-badge ${badge}">${badgeText}</span>${notesHtml}</div>`;
     });
     document.getElementById('growthTimeline').innerHTML = tlHtml;
     // Schedule
@@ -296,6 +314,192 @@ function refreshCalendar() {
         schHtml += `<div class="sched-item"><div class="sched-icon">${s.icon}</div><div class="sched-body"><div class="sched-title">${s.title}</div><div class="sched-date">${formatDate(dt)} (${s.hst} HST)</div></div>${statusHtml}</div>`;
     });
     document.getElementById('scheduleList').innerHTML = schHtml;
+    renderSeasonHistory();
+}
+
+// === Timeline Notes ===
+let _tlNotePhotoData = null;
+
+function openTimelineNote(field, hst, phaseName) {
+    const planting = state.plantings.find(p => p.field === field);
+    if (!planting) return;
+    if (!planting.overrides) planting.overrides = {};
+    if (!planting.notes) planting.notes = [];
+    
+    document.getElementById('tlNoteField').value = field;
+    document.getElementById('tlNoteHst').value = hst;
+    document.getElementById('tlNoteTitle').innerHTML = `<i class="ph-fill ph-note-pencil" style="color:var(--primary); margin-right:8px;"></i> ${phaseName} (${hst} HST)`;
+    
+    // Set date
+    const d0 = new Date(planting.date);
+    if (planting.overrides[hst]) {
+        document.getElementById('tlNoteDate').value = planting.overrides[hst].split('T')[0];
+    } else {
+        const stageDate = new Date(d0); stageDate.setDate(stageDate.getDate() + hst);
+        document.getElementById('tlNoteDate').value = stageDate.toISOString().split('T')[0];
+    }
+    
+    document.getElementById('tlNoteText').value = '';
+    _tlNotePhotoData = null;
+    document.getElementById('tlNotePhotoPreview').innerHTML = '<span style="font-size:13px; color:#94a3b8;"><i class="ph-fill ph-image" style="margin-right:4px;"></i> Tap untuk upload foto</span>';
+    document.getElementById('tlNotePhoto').value = '';
+    
+    // Show existing notes
+    const existing = planting.notes.filter(n => n.hst === hst);
+    const exDiv = document.getElementById('tlNoteExisting');
+    if (existing.length > 0) {
+        exDiv.style.display = 'block';
+        let eHtml = '';
+        existing.forEach((n, i) => {
+            eHtml += `<div style="background:#f8fafc; border-radius:8px; padding:8px; margin-bottom:6px; font-size:12px; border:1px solid #e2e8f0;">`;
+            if (n.photo) eHtml += `<img src="${n.photo}" style="width:100%; border-radius:6px; margin-bottom:4px; max-height:60px; object-fit:cover;">`;
+            eHtml += `<div>${n.text || '<i>Tanpa teks</i>'}</div>`;
+            eHtml += `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;"><span style="font-size:10px;color:#94a3b8;">${formatDate(new Date(n.date))}</span>`;
+            eHtml += `<button onclick="deleteTimelineNote('${field}',${hst},${i})" style="background:none;border:none;color:#ef4444;font-size:12px;cursor:pointer;"><i class="ph-fill ph-trash"></i></button></div></div>`;
+        });
+        document.getElementById('tlNoteExistingList').innerHTML = eHtml;
+    } else { exDiv.style.display = 'none'; }
+    
+    document.getElementById('timelineNoteModal').style.display = 'flex';
+}
+
+function handleTlNotePhoto(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const max = 300; let w=img.width, h=img.height;
+            if(w>h){if(w>max){h*=max/w;w=max;}}else{if(h>max){w*=max/h;h=max;}}
+            canvas.width=w; canvas.height=h;
+            canvas.getContext('2d').drawImage(img,0,0,w,h);
+            _tlNotePhotoData = canvas.toDataURL('image/jpeg', 0.6);
+            document.getElementById('tlNotePhotoPreview').innerHTML = `<img src="${_tlNotePhotoData}" style="width:100%;height:100%;object-fit:cover;">`;
+        };
+        img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveTimelineNote() {
+    const field = document.getElementById('tlNoteField').value;
+    const hst = parseInt(document.getElementById('tlNoteHst').value);
+    const newDate = document.getElementById('tlNoteDate').value;
+    const text = document.getElementById('tlNoteText').value.trim();
+    
+    const planting = state.plantings.find(p => p.field === field);
+    if (!planting) return;
+    if (!planting.overrides) planting.overrides = {};
+    if (!planting.notes) planting.notes = [];
+    
+    // Save date override
+    const d0 = new Date(planting.date);
+    const originalDate = new Date(d0); originalDate.setDate(originalDate.getDate() + hst);
+    if (newDate && newDate !== originalDate.toISOString().split('T')[0]) {
+        planting.overrides[hst] = newDate;
+    }
+    
+    // Save note if text or photo provided
+    if (text || _tlNotePhotoData) {
+        planting.notes.push({ hst, text, photo: _tlNotePhotoData || null, date: new Date().toISOString() });
+    }
+    
+    saveState(); refreshCalendar();
+    document.getElementById('timelineNoteModal').style.display = 'none';
+    showToast('Catatan tersimpan!');
+}
+
+function deleteTimelineNote(field, hst, idx) {
+    const planting = state.plantings.find(p => p.field === field);
+    if (!planting || !planting.notes) return;
+    const phaseNotes = planting.notes.filter(n => n.hst === hst);
+    if (idx >= 0 && idx < phaseNotes.length) {
+        const globalIdx = planting.notes.indexOf(phaseNotes[idx]);
+        if (globalIdx >= 0) planting.notes.splice(globalIdx, 1);
+        saveState(); refreshCalendar();
+        openTimelineNote(field, hst, '');
+        showToast('Catatan dihapus');
+    }
+}
+
+// === Season Archive ===
+function archiveSeason() {
+    const field = document.getElementById('calFieldSelect').value;
+    const planting = state.plantings.find(p => p.field === field);
+    if (!planting) return alert('Tidak ada musim aktif untuk sawah ini.');
+    const farm = state.farms.find(f => f.id === field);
+    
+    if (!confirm(`Arsipkan musim tanam untuk "${farm ? farm.name : field}"?\n\nSemua data scan & pemupukan musim ini akan diarsipkan, dan Dashboard akan direset untuk musim baru.`)) return;
+    
+    const fieldScans = state.scans.filter(s => s.field === field);
+    const fieldFerts = (state.fertLogs || []).filter(l => typeof l === 'object' && l.field === field);
+    
+    const season = {
+        id: Date.now(),
+        field: field,
+        farmName: farm ? farm.name : field,
+        plantingDate: planting.date,
+        archivedDate: new Date().toISOString(),
+        scans: fieldScans,
+        fertLogs: fieldFerts,
+        notes: planting.notes || [],
+        overrides: planting.overrides || {},
+        totalScans: fieldScans.length,
+        avgBwd: fieldScans.length > 0 ? (fieldScans.reduce((a,s) => a+s.bwd, 0) / fieldScans.length).toFixed(1) : '-',
+        totalUrea: fieldFerts.reduce((a,l) => a + (l.dose || 0), 0)
+    };
+    
+    state.seasons.push(season);
+    state.scans = state.scans.filter(s => s.field !== field);
+    state.fertLogs = (state.fertLogs || []).filter(l => !(typeof l === 'object' && l.field === field));
+    state.plantings = state.plantings.filter(p => p.field !== field);
+    
+    saveState(); refreshCalendar(); generateNotifications();
+    showToast('Musim berhasil diarsipkan! Dashboard direset.');
+}
+
+function renderSeasonHistory() {
+    const seasons = state.seasons || [];
+    if (seasons.length === 0) {
+        document.getElementById('seasonHistoryList').innerHTML = '<div class="reminder-empty">Belum ada arsip musim tanam.</div>';
+        return;
+    }
+    let html = '';
+    seasons.slice().reverse().forEach(s => {
+        html += `<div style="background:#fffbeb; border-radius:12px; padding:12px; margin-bottom:8px; border:1px solid #fde68a; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="openSeasonDetail(${s.id})">`;
+        html += `<div style="display:flex; justify-content:space-between; align-items:center;">`;
+        html += `<div><div style="font-weight:700; color:#92400e; font-size:14px;"><i class="ph-fill ph-archive"></i> ${s.farmName}</div>`;
+        html += `<div style="font-size:11px; color:#a16207;">Tanam: ${formatDate(new Date(s.plantingDate))} → Arsip: ${formatDate(new Date(s.archivedDate))}</div></div>`;
+        html += `<div style="text-align:right;"><div style="font-size:18px; font-weight:800; color:#d97706;">${s.avgBwd}</div><div style="font-size:10px; color:#a16207;">${s.totalScans} scan</div></div>`;
+        html += `</div></div>`;
+    });
+    document.getElementById('seasonHistoryList').innerHTML = html;
+}
+
+function openSeasonDetail(seasonId) {
+    const s = state.seasons.find(x => x.id === seasonId);
+    if (!s) return;
+    let html = '';
+    html += `<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">`;
+    html += `<div style="background:#f0fdf4; padding:10px; border-radius:12px; text-align:center;"><div style="font-size:10px; color:#166534;">Rata-rata BWD</div><div style="font-size:20px; font-weight:800; color:#15803d;">${s.avgBwd}</div></div>`;
+    html += `<div style="background:#eff6ff; padding:10px; border-radius:12px; text-align:center;"><div style="font-size:10px; color:#1e40af;">Total Scan</div><div style="font-size:20px; font-weight:800; color:#2563eb;">${s.totalScans}</div></div>`;
+    html += `<div style="background:#fefce8; padding:10px; border-radius:12px; text-align:center;"><div style="font-size:10px; color:#854d0e;">Total Urea</div><div style="font-size:20px; font-weight:800; color:#ca8a04;">${s.totalUrea}kg</div></div>`;
+    html += `</div>`;
+    html += `<div style="font-size:12px; color:var(--text-light); margin-bottom:8px;"><strong>Sawah:</strong> ${s.farmName}<br><strong>Tanam:</strong> ${formatDate(new Date(s.plantingDate))}<br><strong>Diarsipkan:</strong> ${formatDate(new Date(s.archivedDate))}</div>`;
+    
+    if (s.notes && s.notes.length > 0) {
+        html += `<div style="margin-top:12px;"><div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px;"><i class="ph-fill ph-note-pencil"></i> Catatan (${s.notes.length})</div>`;
+        s.notes.forEach(n => {
+            html += `<div style="background:#f8fafc; border-radius:8px; padding:6px 10px; margin-bottom:4px; font-size:11px; border:1px solid #e2e8f0;">`;
+            if (n.photo) html += `<img src="${n.photo}" style="width:100%; border-radius:6px; margin-bottom:4px; max-height:60px; object-fit:cover;">`;
+            html += `<div>${n.text || ''}</div><div style="font-size:10px; color:#94a3b8;">${n.hst} HST — ${formatDate(new Date(n.date))}</div></div>`;
+        });
+        html += `</div>`;
+    }
+    
+    document.getElementById('seasonDetailContent').innerHTML = html;
+    document.getElementById('seasonDetailModal').style.display = 'flex';
 }
 
 function markFertilized(logId, fieldId, hst) {
