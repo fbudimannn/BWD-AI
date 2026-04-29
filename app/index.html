@@ -418,51 +418,51 @@
     </div>
 
     <!-- ===== TIMELINE NOTE MODAL ===== -->
-    <div id="timelineNoteModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-        <div class="modal-content" style="background:var(--bg); border-radius:24px; width:90%; max-width:400px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); position:relative; overflow-y:auto; max-height:90vh;">
-            <button onclick="document.getElementById('timelineNoteModal').style.display='none'" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:24px; color:var(--text-light); cursor:pointer;"><i class="ph-fill ph-x"></i></button>
-            <h3 id="tlNoteTitle" style="margin-top:0; margin-bottom:16px; font-size:18px; color:var(--text);"><i class="ph-fill ph-note-pencil" style="color:var(--primary); margin-right:8px;"></i> Catatan Fase</h3>
+    <div id="timelineNoteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; backdrop-filter:blur(6px);">
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border-radius:20px; width:92%; max-width:400px; padding:20px; box-shadow:0 24px 48px rgba(0,0,0,0.2); max-height:85vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 id="tlNoteTitle" style="margin:0; font-size:16px; font-weight:800; color:#1e293b;"><i class="ph-fill ph-note-pencil" style="color:#22c55e; margin-right:6px;"></i> Catatan Fase</h3>
+                <button onclick="document.getElementById('timelineNoteModal').style.display='none'" style="background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-size:16px; color:#64748b; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="ph-fill ph-x"></i></button>
+            </div>
             <input type="hidden" id="tlNoteField" value="">
             <input type="hidden" id="tlNoteHst" value="">
             
-            <!-- Edit Target Date -->
-            <div style="margin-bottom:16px;">
-                <label style="font-size:12px; color:var(--text-light); font-weight:600; display:block; margin-bottom:6px;"><i class="ph-fill ph-calendar"></i> Ubah Tanggal Target</label>
-                <input type="date" id="tlNoteDate" class="input-field" style="width:100%; padding:12px; border-radius:12px;">
+            <div style="margin-bottom:14px;">
+                <label style="font-size:11px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">📅 Ubah Tanggal Target</label>
+                <input type="date" id="tlNoteDate" style="width:100%; padding:10px 12px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:14px; color:#1e293b; background:white; box-sizing:border-box;">
             </div>
             
-            <!-- Notes Text -->
-            <div style="margin-bottom:16px;">
-                <label style="font-size:12px; color:var(--text-light); font-weight:600; display:block; margin-bottom:6px;"><i class="ph-fill ph-pencil-simple"></i> Catatan</label>
-                <textarea id="tlNoteText" class="input-field" rows="3" placeholder="Contoh: Hujan deras, tunda pemupukan 2 hari..." style="width:100%; padding:12px; border-radius:12px; resize:vertical; font-family:inherit;"></textarea>
+            <div style="margin-bottom:14px;">
+                <label style="font-size:11px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">✏️ Catatan</label>
+                <textarea id="tlNoteText" rows="2" placeholder="Contoh: Hujan deras, tunda pemupukan..." style="width:100%; padding:10px 12px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:14px; color:#1e293b; resize:vertical; font-family:inherit; background:white; box-sizing:border-box;"></textarea>
             </div>
             
-            <!-- Photo Upload -->
-            <div style="margin-bottom:16px;">
-                <label style="font-size:12px; color:var(--text-light); font-weight:600; display:block; margin-bottom:6px;"><i class="ph-fill ph-camera"></i> Lampirkan Foto</label>
+            <div style="margin-bottom:14px;">
+                <label style="font-size:11px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">📷 Lampirkan Foto</label>
                 <input type="file" id="tlNotePhoto" accept="image/*" style="display:none" onchange="handleTlNotePhoto(event)">
-                <div id="tlNotePhotoPreview" onclick="document.getElementById('tlNotePhoto').click()" style="width:100%; height:120px; border-radius:12px; background:#f1f5f9; border:2px dashed #cbd5e1; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; transition:all 0.3s;">
-                    <span style="font-size:13px; color:#94a3b8;"><i class="ph-fill ph-image" style="margin-right:4px;"></i> Tap untuk upload foto</span>
+                <div id="tlNotePhotoPreview" onclick="document.getElementById('tlNotePhoto').click()" style="width:100%; height:80px; border-radius:10px; background:#f8fafc; border:2px dashed #cbd5e1; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; box-sizing:border-box;">
+                    <span style="font-size:13px; color:#94a3b8;"><i class="ph-fill ph-image" style="margin-right:4px;"></i> Tap untuk upload</span>
                 </div>
             </div>
             
-            <!-- Existing notes for this phase -->
-            <div id="tlNoteExisting" style="display:none; margin-bottom:16px;">
-                <label style="font-size:12px; color:var(--text-light); font-weight:600; display:block; margin-bottom:6px;"><i class="ph-fill ph-list-bullets"></i> Catatan Sebelumnya</label>
-                <div id="tlNoteExistingList" style="max-height:150px; overflow-y:auto;"></div>
+            <div id="tlNoteExisting" style="display:none; margin-bottom:14px;">
+                <label style="font-size:11px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">📋 Catatan Sebelumnya</label>
+                <div id="tlNoteExistingList" style="max-height:120px; overflow-y:auto;"></div>
             </div>
             
-            <button class="btn btn-primary" onclick="saveTimelineNote()" style="width:100%; padding:14px; border-radius:14px; font-size:15px; font-weight:700;">
+            <button class="btn btn-primary" onclick="saveTimelineNote()" style="width:100%; padding:12px; border-radius:12px; font-size:14px; font-weight:700;">
                 <i class="ph-fill ph-floppy-disk"></i> Simpan Catatan
             </button>
         </div>
     </div>
 
     <!-- ===== SEASON DETAIL MODAL ===== -->
-    <div id="seasonDetailModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-        <div class="modal-content" style="background:var(--bg); border-radius:24px; width:90%; max-width:400px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); position:relative; overflow-y:auto; max-height:90vh;">
-            <button onclick="document.getElementById('seasonDetailModal').style.display='none'" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:24px; color:var(--text-light); cursor:pointer;"><i class="ph-fill ph-x"></i></button>
-            <h3 style="margin-top:0; margin-bottom:16px; font-size:18px; color:var(--text);"><i class="ph-fill ph-archive" style="color:#f59e0b; margin-right:8px;"></i> Detail Musim</h3>
+    <div id="seasonDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; backdrop-filter:blur(6px);">
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border-radius:20px; width:92%; max-width:400px; padding:20px; box-shadow:0 24px 48px rgba(0,0,0,0.2); max-height:85vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="margin:0; font-size:16px; font-weight:800; color:#1e293b;"><i class="ph-fill ph-archive" style="color:#f59e0b; margin-right:6px;"></i> Detail Musim</h3>
+                <button onclick="document.getElementById('seasonDetailModal').style.display='none'" style="background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-size:16px; color:#64748b; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="ph-fill ph-x"></i></button>
+            </div>
             <div id="seasonDetailContent"></div>
         </div>
     </div>
