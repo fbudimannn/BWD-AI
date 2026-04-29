@@ -162,8 +162,10 @@ function displayResults(bwd, colors) {
     const dose = getDose(bwd, state.selectedYield);
     document.getElementById('doseValue').textContent=dose;
     document.getElementById('timingValue').textContent=TIMING[s.level];
-    document.getElementById('notesValue').textContent=NOTES[s.level];
-    animBar('barR','valR',colors.meanR,255); animBar('barG','valG',colors.meanG,255); animBar('barB','valB',colors.meanB,255);
+    
+    animBar('barR','valR',colors.meanR,255); 
+    animBar('barG','valG',colors.meanG,255); 
+    animBar('barB','valB',colors.meanB,255);
     animBar('barGI','valGI',Math.max(0,colors.greenness),200);
 }
 function quickLogFertilizer() {
