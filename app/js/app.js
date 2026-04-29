@@ -142,6 +142,38 @@ function displayResults(bwd, colors) {
     animBar('barR','valR',colors.meanR,255); animBar('barG','valG',colors.meanG,255); animBar('barB','valB',colors.meanB,255);
     animBar('barGI','valGI',Math.max(0,colors.greenness),200);
 }
+function quickLogFertilizer() {
+    const fieldId = document.getElementById('scanFieldSelect').value;
+    const bwdStr = document.getElementById('scoreValue').textContent;
+    const recDose = parseFloat(document.getElementById('doseValue').textContent) || 0;
+    
+    // Find planting date to calculate HST
+    const planting = state.plantings.find(p => p.field === fieldId);
+    let hstStr = '?';
+    let hst = 0;
+    if (planting) {
+        const d0 = new Date(planting.date);
+        hst = Math.floor((new Date() - d0) / (1000*60*60*24));
+        hstStr = hst + ' HST';
+    } else {
+        alert('Perhatian: Anda belum mengatur jadwal Kalender untuk sawah ini. Catatan tetap akan disimpan.');
+    }
+
+    let actualDoseStr = prompt(`Catat Pemupukan Hari Ini (${hstStr})\nSawah: ${fieldId}\nSkor BWD: ${bwdStr}\n\nBerapa kg Urea/ha yang Anda tabur?`, recDose);
+    if (actualDoseStr === null) return;
+    
+    let actualDose = parseFloat(actualDoseStr);
+    if (isNaN(actualDose)) actualDose = recDose;
+    
+    if (!state.fertLogs) state.fertLogs = [];
+    const logId = `${fieldId}_quick_${Date.now()}`;
+    state.fertLogs.push({ id: logId, field: fieldId, hst: hst, dose: actualDose, date: new Date().toISOString() });
+    saveState();
+    
+    alert('✅ Pemupukan berhasil dicatat ke Kalender riwayat!');
+    showPage('calendar');
+}
+
 function animBar(bid,vid,val,max) { setTimeout(()=>{document.getElementById(bid).style.width=Math.min(100,val/max*100)+'%';document.getElementById(vid).textContent=Math.round(val);},100); }
 
 // === Calendar ===
@@ -198,7 +230,7 @@ function refreshCalendar() {
         if (isLogged) {
             const logEntry = state.fertLogs.find(l => typeof l === 'object' && l.id === logId);
             const doseText = logEntry ? ` (${logEntry.dose}kg)` : '';
-            statusHtml = `<span class="sched-status done"><i class="ph-fill ph-check-circle"></i> Selesai${doseText}</span>`;
+            statusHtml = `<span class="sched-status done" style="cursor:pointer; transition:transform 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="openHistoryModal('fert', '${logEntry ? logEntry.id : logId}')"><i class="ph-fill ph-check-circle"></i> Selesai${doseText}</span>`;
         } else if (hst >= s.hst) {
             if (s.type === 'fert') {
                 statusHtml = `<button class="btn btn-primary" style="padding:4px 10px; font-size:11px; border-radius:12px; margin-left:auto; flex:none" onclick="markFertilized('${logId}', '${field}', ${s.hst})">Tandai Dipupuk</button>`;
@@ -390,17 +422,23 @@ function addFarm() {
 }
 
 function checkAchievements() {
+    const unlock = (id, msg) => {
+        const el = document.getElementById(id);
+        if (el && el.classList.contains('locked')) {
+            el.classList.remove('locked');
+            showToast(msg);
+        }
+    };
     const n = state.scans.length;
-    if(n>=1) document.getElementById('badge1').classList.remove('locked');
-    if(n>=10) document.getElementById('badge2').classList.remove('locked');
-    // streak check
+    if(n>=1) unlock('badge1', 'Petani Modern (Scan Pertama)');
+    if(n>=10) unlock('badge2', 'Pengamat Rutin (10x Scan)');
     const days = new Set(state.scans.map(s=>new Date(s.date).toDateString()));
     let streak=0,d=new Date();
     while(days.has(d.toDateString())){streak++;d.setDate(d.getDate()-1);}
-    if(streak>=7) document.getElementById('badge3').classList.remove('locked');
+    if(streak>=7) unlock('badge3', 'Konsisten 7 Hari');
     const totalUrea = state.scans.reduce((a,s)=>a+(s.dose||0),0);
-    if(totalUrea>=100) document.getElementById('badge4').classList.remove('locked');
-    if(n>=50) document.getElementById('badge5').classList.remove('locked');
+    if(totalUrea>=100) unlock('badge4', 'Master Pupuk (100kg)');
+    if(n>=50) unlock('badge5', 'Pakar BWD AI');
 }
 
 function exportData() {
@@ -440,7 +478,7 @@ function refreshHome() {
     else { scans.slice().reverse().slice(0,5).forEach(s => {
         const r=Math.max(2,Math.min(5,Math.round(s.bwd))),c=N_STATUS[r].color,farm=state.farms.find(f=>f.id===s.field);
         const thumbHtml = s.thumb ? `<img src="${s.thumb}" class="scan-thumb" style="border:2px solid ${c}">` : `<div class="scan-bwd" style="background:${c}">${s.bwd.toFixed(1)}</div>`;
-        rsHtml+=`<div class="scan-item">${thumbHtml}<div class="scan-body"><div class="scan-field">${farm?farm.name:s.field} <span style="font-size:11px;color:${c};font-weight:700">· BWD ${s.bwd.toFixed(1)}</span></div><div class="scan-meta">${formatDate(new Date(s.date))}</div></div><div class="scan-dose">${s.dose} kg/ha</div></div>`;
+        rsHtml+=`<div class="scan-item" style="cursor:pointer; transition:transform 0.2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="openHistoryModal('scan', '${s.id}')">${thumbHtml}<div class="scan-body"><div class="scan-field">${farm?farm.name:s.field} <span style="font-size:11px;color:${c};font-weight:700">· BWD ${s.bwd.toFixed(1)}</span></div><div class="scan-meta">${formatDate(new Date(s.date))}</div></div><div class="scan-dose">${s.dose} kg/ha</div></div>`;
     }); }
     document.getElementById('recentScans').innerHTML = rsHtml;
 }
@@ -461,6 +499,52 @@ function generateNotifications() {
     if(items.length>0) document.getElementById('notifDot').style.display='block';
     const html = items.length>0 ? items.map(i=>`<div class="notif-item">${i.text}<div class="notif-time">${i.time}</div></div>`).join('') : '<div class="notif-item">Tidak ada notifikasi baru.</div>';
     document.getElementById('notifList').innerHTML = html;
+}
+
+// === Modal & Toast ===
+function openHistoryModal(type, id) {
+    let data = null, title = '', bwd = '-', dose = '-', fieldName = '', dateStr = '', info = '', thumb = null;
+    
+    if (type === 'scan') {
+        data = state.scans.find(s => s.id == id);
+        if(!data) return;
+        const farm = state.farms.find(f => f.id === data.field);
+        title = 'Hasil Scan Daun'; fieldName = farm ? farm.name : data.field;
+        dateStr = formatDate(new Date(data.date));
+        bwd = data.bwd.toFixed(1); dose = (data.dose || 0) + ' kg';
+        info = `Target panen: ${data.yield || '-'} ton/ha`;
+        thumb = data.thumb;
+    } else if (type === 'fert') {
+        data = state.fertLogs.find(f => f.id === id || f === id);
+        if(!data) return;
+        const logObj = typeof data === 'string' ? {field: data.split('_')[0], date: new Date().toISOString(), dose: '-'} : data;
+        const farm = state.farms.find(f => f.id === logObj.field);
+        title = 'Riwayat Pemupukan'; fieldName = farm ? farm.name : logObj.field;
+        dateStr = formatDate(new Date(logObj.date));
+        bwd = 'N/A'; dose = logObj.dose + ' kg';
+        info = `Pemupukan pada usia ${logObj.hst || '-'} HST.`;
+    }
+    
+    document.querySelector('#historyModal h3').innerHTML = `<i class="ph-fill ph-file-text" style="color:var(--primary); margin-right:8px;"></i> ${title}`;
+    document.getElementById('modalField').textContent = fieldName;
+    document.getElementById('modalDate').textContent = dateStr;
+    document.getElementById('modalBwd').textContent = bwd;
+    document.getElementById('modalDose').textContent = dose;
+    document.getElementById('modalInfo').textContent = info;
+    
+    const imgEl = document.getElementById('modalThumb');
+    const iconEl = document.getElementById('modalThumbIcon');
+    if (thumb) { imgEl.src = thumb; imgEl.style.display = 'block'; iconEl.style.display = 'none'; }
+    else { imgEl.style.display = 'none'; iconEl.style.display = 'block'; }
+    
+    document.getElementById('historyModal').style.display = 'flex';
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastText').textContent = message;
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(-100px)'; }, 3500);
 }
 
 // === Helpers ===
