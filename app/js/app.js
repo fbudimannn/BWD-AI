@@ -564,6 +564,15 @@ function formatDateShort(d) { return d.toLocaleDateString('id',{day:'numeric',mo
 
 // === Init ===
 document.addEventListener('DOMContentLoaded', () => {
+    // Splash Screen Logic
+    setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        if (splash) {
+            splash.classList.add('fade-out');
+            setTimeout(() => splash.remove(), 500); // Remove from DOM after fade out
+        }
+    }, 1500);
+
     populateFarmSelects(); refreshHome(); generateNotifications();
     selectYield(state.selectedYield);
     // Close notif panel on click outside
