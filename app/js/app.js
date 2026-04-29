@@ -430,12 +430,18 @@ function addFarm() {
 }
 
 function editFarm(id) {
-    if (id === 'default') return alert('Sawah Utama bawaan tidak bisa diedit/dihapus.');
     const farmIdx = state.farms.findIndex(f => f.id === id);
     if (farmIdx < 0) return;
     const farm = state.farms[farmIdx];
     
-    const action = prompt(`Edit Sawah: ${farm.name}\n\nKetik "1" untuk ubah Nama\nKetik "2" untuk ubah Luas\nKetik "HAPUS" untuk menghapus sawah ini.`, "1");
+    let promptMsg = `Edit Sawah: ${farm.name}\n\nKetik "1" untuk ubah Nama\nKetik "2" untuk ubah Luas`;
+    if (id !== 'default') {
+        promptMsg += `\nKetik "HAPUS" untuk menghapus sawah ini.`;
+    } else {
+        promptMsg += `\n(Catatan: Sawah Utama tidak bisa dihapus, hanya diedit).`;
+    }
+    
+    const action = prompt(promptMsg, "1");
     if (!action) return;
     
     if (action === '1') {
@@ -445,6 +451,10 @@ function editFarm(id) {
         const newArea = prompt('Luas baru (ha):', farm.area);
         if (newArea && !isNaN(parseFloat(newArea))) farm.area = parseFloat(newArea);
     } else if (action.toUpperCase() === 'HAPUS') {
+        if (id === 'default') {
+            alert('Maaf, Sawah Utama bawaan sistem tidak bisa dihapus. Anda hanya bisa mengubah nama dan luasnya saja.');
+            return;
+        }
         if (confirm(`Yakin ingin menghapus sawah "${farm.name}"? Ini tidak akan menghapus riwayat scan yang sudah ada.`)) {
             state.farms.splice(farmIdx, 1);
             showToast('Sawah dihapus');
