@@ -193,7 +193,7 @@
                 <p class="card-desc">Masukkan tanggal tanam untuk generate jadwal otomatis</p>
                 <div class="input-row">
                     <input type="date" id="plantingDate" class="input-field">
-                    <select id="calFieldSelect" class="input-field">
+                    <select id="calFieldSelect" class="input-field" onchange="refreshCalendar()">
                         <option value="default">Sawah Utama</option>
                     </select>
                     <button class="btn btn-primary" onclick="setPlantingDate()">Set Jadwal</button>

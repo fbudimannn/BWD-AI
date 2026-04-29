@@ -467,8 +467,10 @@ function generateNotifications() {
 function populateFarmSelects() {
     ['scanFieldSelect','calFieldSelect','dashFieldSelect'].forEach(id => {
         const el = document.getElementById(id); if(!el) return;
+        const currentVal = el.value; // simpan nilai saat ini
         const opts = state.farms.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
         el.innerHTML = id==='dashFieldSelect' ? `<option value="all">Semua Sawah</option>${opts}` : opts;
+        if (currentVal && Array.from(el.options).some(o => o.value === currentVal)) el.value = currentVal; // kembalikan nilai
     });
 }
 function updateScanField() {}
