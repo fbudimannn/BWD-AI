@@ -39,9 +39,15 @@ const TIMING = { deficient:'Segera aplikasikan pupuk urea (25 HST/fase anakan ak
 const NOTES = { deficient:'Pupuk disebarkan merata saat sawah macak-macak.', adequate:'Hindari pemupukan saat hujan deras.', optimum:'Fokus pengelolaan air dan hama.', excessive:'Monitor kerebahan tanaman.' };
 
 // === Scanner ===
-function triggerCapture() { document.getElementById('imageInput').click(); }
+function triggerCapture(mode) {
+    if (mode === 'camera') {
+        document.getElementById('imageInputCamera').click();
+    } else {
+        document.getElementById('imageInputGallery').click();
+    }
+}
 
-document.getElementById('imageInput').addEventListener('change', function(e) {
+function handleImageInput(e) {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = function(evt) {
@@ -53,14 +59,15 @@ document.getElementById('imageInput').addEventListener('change', function(e) {
         capturedImage = evt.target.result;
     };
     reader.readAsDataURL(file);
-});
+}
 
 function resetCapture() {
     document.getElementById('previewImage').style.display = 'none';
     document.getElementById('capturePlaceholder').style.display = 'block';
     document.getElementById('btnReset').style.display = 'none';
     document.getElementById('btnAnalyze').disabled = true;
-    document.getElementById('imageInput').value = '';
+    document.getElementById('imageInputCamera').value = '';
+    document.getElementById('imageInputGallery').value = '';
     document.getElementById('results').style.display = 'none';
     capturedImage = null; analysisResult = null;
 }
@@ -77,30 +84,41 @@ function analyzeLeaf() {
     btn.innerHTML = '<span><i class="ph-fill ph-hourglass"></i></span> Menganalisis...'; btn.disabled = true; btn.classList.add('analyzing');
     const img = new Image();
     img.onload = function() {
-        const canvas = document.getElementById('analysisCanvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const scale = Math.min(300/img.width, 300/img.height, 1);
-        canvas.width = Math.round(img.width*scale); canvas.height = Math.round(img.height*scale);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const colorData = extractColors(ctx.getImageData(0, 0, canvas.width, canvas.height));
-        const bwdScore = classifyBWD(colorData);
-        analysisResult = { bwdScore, colorData };
-        
-        // Generate Thumbnail (64x64)
-        const thumbCanvas = document.createElement('canvas');
-        thumbCanvas.width = 64; thumbCanvas.height = 64;
-        const thumbCtx = thumbCanvas.getContext('2d');
-        const size = Math.min(img.width, img.height);
-        const sx = (img.width - size) / 2;
-        const sy = (img.height - size) / 2;
-        thumbCtx.drawImage(img, sx, sy, size, size, 0, 0, 64, 64);
-        const thumbData = thumbCanvas.toDataURL('image/jpeg', 0.5);
+        try {
+            const canvas = document.getElementById('analysisCanvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const scale = Math.min(300/img.width, 300/img.height, 1);
+            canvas.width = Math.round(img.width*scale); canvas.height = Math.round(img.height*scale);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const colorData = extractColors(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            const bwdScore = classifyBWD(colorData);
+            analysisResult = { bwdScore, colorData };
+            
+            // Generate Thumbnail (64x64)
+            const thumbCanvas = document.createElement('canvas');
+            thumbCanvas.width = 64; thumbCanvas.height = 64;
+            const thumbCtx = thumbCanvas.getContext('2d');
+            const size = Math.min(img.width, img.height);
+            const sx = (img.width - size) / 2;
+            const sy = (img.height - size) / 2;
+            thumbCtx.drawImage(img, sx, sy, size, size, 0, 0, 64, 64);
+            const thumbData = thumbCanvas.toDataURL('image/jpeg', 0.5);
 
-        // Save scan
-        const field = document.getElementById('scanFieldSelect').value;
-        state.scans.push({ id: Date.now(), date: new Date().toISOString(), bwd: bwdScore, field, yield: state.selectedYield, dose: getDose(bwdScore, state.selectedYield), colors: colorData, thumb: thumbData });
-        saveState(); checkAchievements();
-        setTimeout(() => { displayResults(bwdScore, colorData); btn.innerHTML = '<span><i class="ph-fill ph-brain"></i></span> Analisis Sekarang'; btn.disabled = false; btn.classList.remove('analyzing'); }, 1000);
+            // Save scan
+            const field = document.getElementById('scanFieldSelect').value;
+            state.scans.push({ id: Date.now(), date: new Date().toISOString(), bwd: bwdScore, field, yield: state.selectedYield, dose: getDose(bwdScore, state.selectedYield), colors: colorData, thumb: thumbData });
+            saveState(); checkAchievements();
+            setTimeout(() => { 
+                displayResults(bwdScore, colorData); 
+                btn.innerHTML = '<span><i class="ph-fill ph-brain"></i></span> Analisis Sekarang'; 
+                btn.disabled = false; btn.classList.remove('analyzing'); 
+            }, 1000);
+        } catch (err) {
+            console.error(err);
+            alert('Gagal memproses gambar. Pastikan izin kamera diberikan atau pilih foto yang jelas.');
+            btn.innerHTML = '<span><i class="ph-fill ph-camera"></i></span> Ulangi Scan'; 
+            btn.disabled = false; btn.classList.remove('analyzing');
+        }
     };
     img.src = capturedImage;
 }
@@ -109,9 +127,9 @@ function extractColors(imageData) {
     const d = imageData.data; let tR=0,tG=0,tB=0,n=0;
     for (let i=0;i<d.length;i+=4) { const r=d[i],g=d[i+1],b=d[i+2]; if(d[i+3]<128) continue; if(g>40&&g>r*0.7) { tR+=r;tG+=g;tB+=b;n++; } }
     if(n<100) { n=0; for(let i=0;i<d.length;i+=4){tR+=d[i];tG+=d[i+1];tB+=d[i+2];n++;} }
-    const mR=tR/n, mG=tG/n, mB=tB/n;
+    const mR=n?tR/n:0, mG=n?tG/n:0, mB=n?tB/n:0;
     const hsv = rgbToHsv(mR,mG,mB);
-    return { meanR:Math.round(mR), meanG:Math.round(mG), meanB:Math.round(mB), meanH:hsv[0], greenness:Math.round(2*mG-mR-mB) };
+    return { meanR:Math.round(mR), meanG:Math.round(mG), meanB:Math.round(mB), meanH:hsv[0]||0, greenness:Math.round(2*mG-mR-mB) };
 }
 
 function classifyBWD(c) {
@@ -406,6 +424,16 @@ function recalcCost() {
 function refreshProfile() {
     document.getElementById('profileName').value = state.profile.name;
     document.getElementById('notifToggle').checked = state.profile.notifications;
+    
+    // Avatar
+    const avatarImg = document.getElementById('profileAvatarImg');
+    const avatarIcon = document.getElementById('profileAvatarIcon');
+    if (state.profile.avatar) {
+        avatarImg.src = state.profile.avatar;
+        avatarImg.style.display = 'block';
+        avatarIcon.style.display = 'none';
+    }
+    
     // Farms
     let fHtml = '';
     state.farms.forEach(f => {
@@ -420,6 +448,28 @@ function saveProfile() {
     state.profile.name = document.getElementById('profileName').value || 'Petani';
     state.profile.notifications = document.getElementById('notifToggle').checked;
     saveState();
+}
+
+function handleProfilePhotoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const max = 200;
+            let w = img.width, h = img.height;
+            if(w>h){if(w>max){h*=max/w;w=max;}}else{if(h>max){w*=max/h;h=max;}}
+            canvas.width = w; canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+            state.profile.avatar = canvas.toDataURL('image/jpeg', 0.8);
+            saveState(); refreshProfile(); showToast('Foto profil diperbarui');
+        };
+        img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
 }
 
 function openFarmModal(id) {
