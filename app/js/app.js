@@ -136,10 +136,10 @@ function analyzeLeaf() {
 function extractColors(imageData) {
     const d = imageData.data; let tR=0,tG=0,tB=0,n=0;
     const totalPixels = d.length / 4;
-    for (let i=0;i<d.length;i+=4) { const r=d[i],g=d[i+1],b=d[i+2]; if(d[i+3]<128) continue; if(g>40&&g>r*0.7) { tR+=r;tG+=g;tB+=b;n++; } }
+    for (let i=0;i<d.length;i+=4) { const r=d[i],g=d[i+1],b=d[i+2]; if(d[i+3]<128) continue; if(g>40&&g>r*0.7&&g>=b) { tR+=r;tG+=g;tB+=b;n++; } }
     
-    // Validasi Daun (Leaf Detection): minimal 5% area foto harus berwarna dominan hijau
-    if (n / totalPixels < 0.05) {
+    // Validasi Daun (Leaf Detection): minimal 10% area foto harus berwarna dominan hijau
+    if (n / totalPixels < 0.10) {
         throw new Error("NOT_A_LEAF");
     }
     
