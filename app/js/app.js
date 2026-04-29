@@ -30,9 +30,9 @@ function showPage(page) {
 // === IRRI Tables ===
 const DOSAGE = { "2-3": {5:75,6:100,7:125,8:150}, "3-4": {5:50,6:75,7:100,8:125}, "4-5": {5:0,6:25,7:50,8:50} };
 const N_STATUS = {
-    2: { level:'deficient', label:'Kekurangan Nitrogen', icon:'⚠️', color:'#CDDC39', desc:'Daun sangat pucat, pemupukan segera diperlukan.' },
+    2: { level:'deficient', label:'Kekurangan Nitrogen', icon:'<i class="ph-fill ph-warning"></i>', color:'#CDDC39', desc:'Daun sangat pucat, pemupukan segera diperlukan.' },
     3: { level:'adequate', label:'Nitrogen Cukup Rendah', icon:'🌿', color:'#8BC34A', desc:'Nitrogen di bawah optimal, pemupukan moderat disarankan.' },
-    4: { level:'optimum', label:'Nitrogen Optimal', icon:'✅', color:'#4CAF50', desc:'Kondisi optimal, pemupukan minimal.' },
+    4: { level:'optimum', label:'Nitrogen Optimal', icon:'<i class="ph-fill ph-check-circle"></i>', color:'#4CAF50', desc:'Kondisi optimal, pemupukan minimal.' },
     5: { level:'excessive', label:'Nitrogen Berlebih', icon:'🟢', color:'#2E7D32', desc:'Tidak perlu pemupukan tambahan.' }
 };
 const TIMING = { deficient:'Segera aplikasikan pupuk urea (25 HST/fase anakan aktif).', adequate:'Pemupukan moderat pada 25-35 HST.', optimum:'Pemupukan minimal. Monitor 7-10 hari.', excessive:'Tidak diperlukan pemupukan.' };
@@ -74,7 +74,7 @@ function selectYield(v) {
 function analyzeLeaf() {
     if (!capturedImage) return;
     const btn = document.getElementById('btnAnalyze');
-    btn.innerHTML = '<span>⏳</span> Menganalisis...'; btn.disabled = true; btn.classList.add('analyzing');
+    btn.innerHTML = '<span><i class="ph-fill ph-hourglass"></i></span> Menganalisis...'; btn.disabled = true; btn.classList.add('analyzing');
     const img = new Image();
     img.onload = function() {
         const canvas = document.getElementById('analysisCanvas');
@@ -100,7 +100,7 @@ function analyzeLeaf() {
         const field = document.getElementById('scanFieldSelect').value;
         state.scans.push({ id: Date.now(), date: new Date().toISOString(), bwd: bwdScore, field, yield: state.selectedYield, dose: getDose(bwdScore, state.selectedYield), colors: colorData, thumb: thumbData });
         saveState(); checkAchievements();
-        setTimeout(() => { displayResults(bwdScore, colorData); btn.innerHTML = '<span>🧠</span> Analisis Sekarang'; btn.disabled = false; btn.classList.remove('analyzing'); }, 1000);
+        setTimeout(() => { displayResults(bwdScore, colorData); btn.innerHTML = '<span><i class="ph-fill ph-brain"></i></span> Analisis Sekarang'; btn.disabled = false; btn.classList.remove('analyzing'); }, 1000);
     };
     img.src = capturedImage;
 }
@@ -163,30 +163,30 @@ function refreshCalendar() {
     const d0 = new Date(planting.date), today = new Date();
     const hst = Math.floor((today-d0)/(1000*60*60*24));
     const stages = [
-        {name:'Tanam',hst:0,icon:'🌱',desc:'Hari penanaman'},
-        {name:'Anakan Aktif',hst:25,icon:'📸',desc:'Scan BWD #1 — waktu pemupukan susulan'},
-        {name:'Primordia',hst:35,icon:'📸',desc:'Scan BWD #2 — koreksi pemupukan'},
-        {name:'Bunting',hst:55,icon:'🌾',desc:'Fase reproduktif dimulai'},
-        {name:'Berbunga',hst:75,icon:'🌸',desc:'Fase pembungaan'},
-        {name:'Pengisian',hst:90,icon:'🍚',desc:'Pengisian bulir'},
-        {name:'Panen',hst:120,icon:'🎯',desc:'Waktu panen!'}
+        {name:'Tanam',hst:0,icon:'<i class="ph-fill ph-seedling"></i>',desc:'Hari penanaman'},
+        {name:'Anakan Aktif',hst:25,icon:'<i class="ph-fill ph-camera"></i>',desc:'Scan BWD #1 — waktu pemupukan susulan'},
+        {name:'Primordia',hst:35,icon:'<i class="ph-fill ph-camera"></i>',desc:'Scan BWD #2 — koreksi pemupukan'},
+        {name:'Bunting',hst:55,icon:'<i class="ph-fill ph-plant"></i>',desc:'Fase reproduktif dimulai'},
+        {name:'Berbunga',hst:75,icon:'<i class="ph-fill ph-flower-lotus"></i>',desc:'Fase pembungaan'},
+        {name:'Pengisian',hst:90,icon:'<i class="ph-fill ph-bowl-food"></i>',desc:'Pengisian bulir'},
+        {name:'Panen',hst:120,icon:'<i class="ph-fill ph-target"></i>',desc:'Waktu panen!'}
     ];
     let tlHtml = '';
     stages.forEach(s => {
         const stageDate = new Date(d0); stageDate.setDate(stageDate.getDate()+s.hst);
         const cls = hst>=s.hst+5?'past':hst>=s.hst-2?'current':'future';
         const badge = cls==='past'?'done':cls==='current'?'active':'upcoming';
-        const badgeText = cls==='past'?'✅ Selesai':cls==='current'?'📍 Saat Ini':'⏳ Mendatang';
+        const badgeText = cls==='past'?'<i class="ph-fill ph-check-circle"></i> Selesai':cls==='current'?'<i class="ph-fill ph-map-pin"></i> Saat Ini':'<i class="ph-fill ph-hourglass"></i> Mendatang';
         tlHtml += `<div class="timeline-item ${cls}"><div class="tl-title">${s.icon} ${s.name} (${s.hst} HST)</div><div class="tl-date">${formatDate(stageDate)}</div><div class="tl-desc">${s.desc}</div><span class="tl-badge ${badge}">${badgeText}</span></div>`;
     });
     document.getElementById('growthTimeline').innerHTML = tlHtml;
     // Schedule
     const schedItems = [
-        {icon:'📸',title:'Scan BWD #1',hst:25,type:'scan'},
-        {icon:'💊',title:'Pemupukan Susulan #1',hst:26,type:'fert'},
-        {icon:'📸',title:'Scan BWD #2',hst:35,type:'scan'},
-        {icon:'💊',title:'Koreksi Pemupukan',hst:36,type:'fert'},
-        {icon:'📸',title:'Monitoring Lanjutan',hst:50,type:'scan'},
+        {icon:'<i class="ph-fill ph-camera"></i>',title:'Scan BWD #1',hst:25,type:'scan'},
+        {icon:'<i class="ph-fill ph-pill"></i>',title:'Pemupukan Susulan #1',hst:26,type:'fert'},
+        {icon:'<i class="ph-fill ph-camera"></i>',title:'Scan BWD #2',hst:35,type:'scan'},
+        {icon:'<i class="ph-fill ph-pill"></i>',title:'Koreksi Pemupukan',hst:36,type:'fert'},
+        {icon:'<i class="ph-fill ph-camera"></i>',title:'Monitoring Lanjutan',hst:50,type:'scan'},
     ];
     let schHtml = '';
     schedItems.forEach(s => {
@@ -198,15 +198,15 @@ function refreshCalendar() {
         if (isLogged) {
             const logEntry = state.fertLogs.find(l => typeof l === 'object' && l.id === logId);
             const doseText = logEntry ? ` (${logEntry.dose}kg)` : '';
-            statusHtml = `<span class="sched-status done">✅ Selesai${doseText}</span>`;
+            statusHtml = `<span class="sched-status done"><i class="ph-fill ph-check-circle"></i> Selesai${doseText}</span>`;
         } else if (hst >= s.hst) {
             if (s.type === 'fert') {
                 statusHtml = `<button class="btn btn-primary" style="padding:4px 10px; font-size:11px; border-radius:12px; margin-left:auto; flex:none" onclick="markFertilized('${logId}', '${field}', ${s.hst})">Tandai Dipupuk</button>`;
             } else {
-                statusHtml = `<span class="sched-status pending">⚠️ Terlewat</span>`;
+                statusHtml = `<span class="sched-status pending"><i class="ph-fill ph-warning"></i> Terlewat</span>`;
             }
         } else {
-            statusHtml = `<span class="sched-status pending">⏳ Mendatang</span>`;
+            statusHtml = `<span class="sched-status pending"><i class="ph-fill ph-hourglass"></i> Mendatang</span>`;
         }
         
         schHtml += `<div class="sched-item"><div class="sched-icon">${s.icon}</div><div class="sched-body"><div class="sched-title">${s.title}</div><div class="sched-date">${formatDate(dt)} (${s.hst} HST)</div></div>${statusHtml}</div>`;
@@ -310,13 +310,13 @@ function updateTrend(id, diff, hasPrev, pre='', post='', dec=0, lowerIsBetter=fa
     if (!el) return;
     if (!hasPrev || diff === 0) {
         el.className = 'trend-indicator trend-neutral';
-        el.innerHTML = `<span>➖</span> Stabil`;
+        el.innerHTML = `<span><i class="ph-bold ph-minus"></i></span> Stabil`;
         return;
     }
     const isUp = diff > 0;
     const isGood = lowerIsBetter ? !isUp : isUp;
     el.className = `trend-indicator ${isGood ? 'trend-up' : 'trend-down'}`;
-    const icon = isUp ? '↗️' : '↘️';
+    const icon = isUp ? '<i class="ph-bold ph-arrow-up-right"></i>' : '<i class="ph-bold ph-arrow-down-right"></i>';
     const sign = isUp ? '+' : '';
     el.innerHTML = `<span>${icon}</span> ${sign}${pre}${Math.abs(diff).toFixed(dec).replace(/\.0$/,'')}${post}`;
 }
@@ -369,7 +369,7 @@ function refreshProfile() {
     // Farms
     let fHtml = '';
     state.farms.forEach(f => {
-        fHtml += `<div class="farm-item"><div class="farm-icon">🌾</div><div class="farm-body"><div class="farm-name">${f.name}</div><div class="farm-detail">${f.area} ha · ${f.variety} · ${f.location||'Lokasi belum diset'}</div></div></div>`;
+        fHtml += `<div class="farm-item"><div class="farm-icon"><i class="ph-fill ph-plant"></i></div><div class="farm-body"><div class="farm-name">${f.name}</div><div class="farm-detail">${f.area} ha · ${f.variety} · ${f.location||'Lokasi belum diset'}</div></div></div>`;
     });
     document.getElementById('farmList').innerHTML = fHtml;
     checkAchievements();
@@ -415,7 +415,7 @@ function exportData() {
 function refreshHome() {
     const hour = new Date().getHours();
     const greeting = hour<11?'Selamat Pagi':hour<15?'Selamat Siang':hour<18?'Selamat Sore':'Selamat Malam';
-    document.querySelector('.hero-home h2').innerHTML = `${greeting}, <span class="gradient-text" id="userName">${state.profile.name}</span> 👋`;
+    document.querySelector('.hero-home h2').innerHTML = `${greeting}, <span class="gradient-text" id="userName">${state.profile.name}</span> <i class="ph-fill ph-hand-waving"></i>`;
     const scans = state.scans;
     document.getElementById('totalScans').textContent = scans.length;
     document.getElementById('avgBwd').textContent = scans.length>0?(scans.reduce((a,s)=>a+s.bwd,0)/scans.length).toFixed(1):'-';
@@ -429,14 +429,14 @@ function refreshHome() {
         [{name:'Scan BWD #1',h:25},{name:'Pemupukan',h:26},{name:'Scan BWD #2',h:35}].forEach(ev => {
             if(ev.h > hst && ev.h <= hst+10) {
                 const dt=new Date(d0); dt.setDate(dt.getDate()+ev.h); const diff=ev.h-hst;
-                remHtml += `<div class="reminder-item"><div class="rem-icon">${ev.name.includes('Scan')?'📸':'💊'}</div><div class="rem-body"><div class="rem-title">${ev.name} — ${farm?farm.name:p.field}</div><div class="rem-date">${formatDate(dt)} (${diff} hari lagi)</div></div></div>`;
+                remHtml += `<div class="reminder-item"><div class="rem-icon">${ev.name.includes('Scan')?'<i class="ph-fill ph-camera"></i>':'<i class="ph-fill ph-pill"></i>'}</div><div class="rem-body"><div class="rem-title">${ev.name} — ${farm?farm.name:p.field}</div><div class="rem-date">${formatDate(dt)} (${diff} hari lagi)</div></div></div>`;
             }
         });
     });
     document.getElementById('upcomingReminders').innerHTML = remHtml || '<div class="reminder-empty">Tidak ada jadwal mendatang dalam 10 hari.</div>';
     // Recent scans
     let rsHtml = '';
-    if(scans.length===0){ rsHtml='<div class="reminder-empty">Belum ada scan. Tap 📸 untuk mulai!</div>'; }
+    if(scans.length===0){ rsHtml='<div class="reminder-empty">Belum ada scan. Tap <i class="ph-fill ph-camera"></i> untuk mulai!</div>'; }
     else { scans.slice().reverse().slice(0,5).forEach(s => {
         const r=Math.max(2,Math.min(5,Math.round(s.bwd))),c=N_STATUS[r].color,farm=state.farms.find(f=>f.id===s.field);
         const thumbHtml = s.thumb ? `<img src="${s.thumb}" class="scan-thumb" style="border:2px solid ${c}">` : `<div class="scan-bwd" style="background:${c}">${s.bwd.toFixed(1)}</div>`;
@@ -455,8 +455,8 @@ function generateNotifications() {
     state.plantings.forEach(p => {
         const d0=new Date(p.date),today=new Date(),hst=Math.floor((today-d0)/(1000*60*60*24));
         const farm=state.farms.find(f=>f.id===p.field);
-        if(hst>=23&&hst<=27) items.push({text:`📸 Waktunya scan BWD di ${farm?farm.name:p.field}! (${hst} HST)`,time:'Hari ini'});
-        if(hst>=33&&hst<=37) items.push({text:`📸 Scan BWD #2 di ${farm?farm.name:p.field} (${hst} HST)`,time:'Hari ini'});
+        if(hst>=23&&hst<=27) items.push({text:`<i class="ph-fill ph-camera"></i> Waktunya scan BWD di ${farm?farm.name:p.field}! (${hst} HST)`,time:'Hari ini'});
+        if(hst>=33&&hst<=37) items.push({text:`<i class="ph-fill ph-camera"></i> Scan BWD #2 di ${farm?farm.name:p.field} (${hst} HST)`,time:'Hari ini'});
     });
     if(items.length>0) document.getElementById('notifDot').style.display='block';
     const html = items.length>0 ? items.map(i=>`<div class="notif-item">${i.text}<div class="notif-time">${i.time}</div></div>`).join('') : '<div class="notif-item">Tidak ada notifikasi baru.</div>';
