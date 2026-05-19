@@ -7,9 +7,9 @@ let capturedImage = null;
 let analysisResult = null;
 
 function defaultState() {
-    return { profile: { name: 'Petani', notifications: true }, farms: [{ id: 'default', name: 'Sawah Utama', area: 1, variety: 'IR64', location: '' }], scans: [], plantings: [], fertLogs: [], seasons: [], selectedYield: 6, ureaPrice: 3500 };
+    return { isFirstTime: true, profile: { name: 'Petani', notifications: true }, farms: [{ id: 'default', name: 'Sawah Utama', area: 1, variety: 'IR64', location: '' }], scans: [], plantings: [], fertLogs: [], seasons: [], selectedYield: 6, ureaPrice: 3500 };
 }
-function loadState() { try { const s = JSON.parse(localStorage.getItem(STORE_KEY)) || defaultState(); if(!s.fertLogs) s.fertLogs=[]; if(!s.seasons) s.seasons=[]; return s; } catch { return defaultState(); } }
+function loadState() { try { const s = JSON.parse(localStorage.getItem(STORE_KEY)) || defaultState(); if(!s.fertLogs) s.fertLogs=[]; if(!s.seasons) s.seasons=[]; if(s.isFirstTime===undefined) s.isFirstTime=true; return s; } catch { return defaultState(); } }
 function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 
 // === Navigation ===
@@ -25,6 +25,61 @@ function showPage(page) {
     if (page === 'dashboard') refreshDashboard();
     if (page === 'profile') refreshProfile();
     if (page === 'calendar') refreshCalendar();
+}
+
+// === Onboarding Tutorial ===
+function checkOnboarding() {
+    if (state.isFirstTime) {
+        document.getElementById('onboardingModal').style.display = 'flex';
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('obPlantingDate').value = today;
+    }
+}
+
+function nextOnboarding(step) {
+    document.getElementById('obSlide1').style.transform = `translateX(-${(step-1)*100}%)`;
+    document.getElementById('obSlide2').style.transform = `translateX(${100 - (step-1)*100}%)`;
+    document.getElementById('obSlide3').style.transform = `translateX(${200 - (step-1)*100}%)`;
+    
+    document.getElementById('obDot1').style.background = step===1 ? 'var(--accent2)' : '#cbd5e1';
+    document.getElementById('obDot1').style.width = step===1 ? '24px' : '8px';
+    document.getElementById('obDot2').style.background = step===2 ? 'var(--accent2)' : '#cbd5e1';
+    document.getElementById('obDot2').style.width = step===2 ? '24px' : '8px';
+    document.getElementById('obDot3').style.background = step===3 ? 'var(--accent2)' : '#cbd5e1';
+    document.getElementById('obDot3').style.width = step===3 ? '24px' : '8px';
+}
+
+function skipOnboarding() {
+    state.isFirstTime = false;
+    saveState();
+    document.getElementById('onboardingModal').style.display = 'none';
+    refreshHome();
+    showToast('Tutorial dilewati');
+}
+
+function finishOnboarding() {
+    const name = document.getElementById('obName').value.trim();
+    const farmName = document.getElementById('obFarmName').value.trim() || 'Sawah Utama';
+    const farmArea = parseFloat(document.getElementById('obFarmArea').value) || 1.0;
+    const plantingDate = document.getElementById('obPlantingDate').value;
+    
+    if (name) state.profile.name = name;
+    
+    state.farms[0] = { id: 'default', name: farmName, area: farmArea, variety: 'IR64', location: '' };
+    
+    if (plantingDate) {
+        state.plantings = [{ field: 'default', date: plantingDate, overrides: {}, notes: [] }];
+    }
+    
+    state.isFirstTime = false;
+    saveState();
+    
+    document.getElementById('onboardingModal').style.display = 'none';
+    refreshHome();
+    refreshCalendar();
+    refreshDashboard();
+    
+    showToast('Setup Selesai! Selamat datang di BWD AI 🎉');
 }
 
 // === IRRI Tables ===
@@ -978,7 +1033,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const splash = document.getElementById('splashScreen');
         if (splash) {
             splash.classList.add('fade-out');
-            setTimeout(() => splash.remove(), 500); // Remove from DOM after fade out
+            setTimeout(() => {
+                splash.remove();
+                checkOnboarding(); // Trigger onboarding after splash
+            }, 500);
+        } else {
+            checkOnboarding();
         }
     }, 1500);
 
