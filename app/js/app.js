@@ -32,10 +32,12 @@ let tourStep = 0;
 let currentHighlight = null;
 
 const tourSteps = [
-    { target: '[data-page="scan"]', title: '📷 Analisis Warna Daun', text: 'Klik menu ini saat di sawah. Foto daun padi Anda untuk mendeteksi warna dan kadar Nitrogen secara otomatis.', page: 'home', align: 'bottom' },
-    { target: '[data-page="calendar"]', title: '📅 Kalender Tanam', text: 'Atur tanggal tanam sawah Anda di sini, dan kami akan membuatkan jadwal pemupukan yang presisi.', page: 'home', align: 'bottom' },
-    { target: '#btnAddFarmHome', title: '🌾 Kelola Banyak Sawah', text: 'Punya lebih dari satu petak sawah? Tambahkan semuanya di sini agar riwayatnya tidak tercampur.', page: 'home', align: 'top' },
-    { target: '#weatherChip', title: '🌤️ Cek Kondisi Cuaca', text: 'Perhatikan indikator ini sebelum memupuk. Pastikan tidak ada hujan deras yang akan menghanyutkan pupuk Anda.', page: 'home', align: 'top' }
+    { target: '[data-page="profile"]', title: '1. Atur Profil Anda', text: 'Selamat datang! Langkah pertama, pergi ke halaman Profil untuk memasukkan nama Anda agar aplikasi bisa menyapa.', page: 'home', align: 'top' },
+    { target: '#profileName', title: 'Ketikan Nama Anda', text: 'Di sinilah Anda bisa mengubah nama dan preferensi notifikasi Anda.', page: 'profile', align: 'bottom' },
+    { target: '#btnAddFarmHome', title: '2. Daftarkan Sawah', text: 'Kembali ke Beranda. Gunakan tombol ini untuk mendaftarkan lahan sawah Anda (Nama & Luas Hektar). Anda bisa mendaftarkan lebih dari satu sawah!', page: 'home', align: 'top' },
+    { target: '#calFieldSelect', title: '3. Atur Jadwal Tanam', text: 'Setelah sawah terdaftar, buka Kalender dan atur Tanggal Tanam. Kami akan langsung membuatkan jadwal panen & pemupukan.', page: 'calendar', align: 'bottom' },
+    { target: '.capture-area', title: '4. Waktunya Scan Daun!', text: 'Saat jadwal pemupukan tiba, buka halaman ini di sawah. Tap area ini untuk memfoto daun padi Anda secara langsung.', page: 'scan', align: 'bottom' },
+    { target: '#dashBwdCard', title: '5. Pantau Penghematan', text: 'Terakhir, semua riwayat foto dan anjuran dosis Urea akan dikalkulasi di Dashboard ini. Anda siap bertani cerdas!', page: 'dashboard', align: 'bottom' }
 ];
 
 function checkOnboarding() {
