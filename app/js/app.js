@@ -27,59 +27,117 @@ function showPage(page) {
     if (page === 'calendar') refreshCalendar();
 }
 
-// === Onboarding Tutorial ===
+// === Walkthrough Tour ===
+let tourStep = 0;
+let currentHighlight = null;
+
+const tourSteps = [
+    { target: '[data-page="scan"]', title: '📷 Analisis Warna Daun', text: 'Klik menu ini saat di sawah. Foto daun padi Anda untuk mendeteksi warna dan kadar Nitrogen secara otomatis.', page: 'home', align: 'bottom' },
+    { target: '[data-page="calendar"]', title: '📅 Kalender Tanam', text: 'Atur tanggal tanam sawah Anda di sini, dan kami akan membuatkan jadwal pemupukan yang presisi.', page: 'home', align: 'bottom' },
+    { target: '#btnAddFarmHome', title: '🌾 Kelola Banyak Sawah', text: 'Punya lebih dari satu petak sawah? Tambahkan semuanya di sini agar riwayatnya tidak tercampur.', page: 'home', align: 'top' },
+    { target: '#weatherChip', title: '🌤️ Cek Kondisi Cuaca', text: 'Perhatikan indikator ini sebelum memupuk. Pastikan tidak ada hujan deras yang akan menghanyutkan pupuk Anda.', page: 'home', align: 'top' }
+];
+
 function checkOnboarding() {
     if (state.isFirstTime) {
-        document.getElementById('onboardingModal').style.display = 'flex';
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('obPlantingDate').value = today;
+        document.getElementById('tourStartModal').style.display = 'flex';
     }
 }
 
-function nextOnboarding(step) {
-    document.getElementById('obSlide1').style.transform = `translateX(-${(step-1)*100}%)`;
-    document.getElementById('obSlide2').style.transform = `translateX(${100 - (step-1)*100}%)`;
-    document.getElementById('obSlide3').style.transform = `translateX(${200 - (step-1)*100}%)`;
-    
-    document.getElementById('obDot1').style.background = step===1 ? 'var(--accent2)' : '#cbd5e1';
-    document.getElementById('obDot1').style.width = step===1 ? '24px' : '8px';
-    document.getElementById('obDot2').style.background = step===2 ? 'var(--accent2)' : '#cbd5e1';
-    document.getElementById('obDot2').style.width = step===2 ? '24px' : '8px';
-    document.getElementById('obDot3').style.background = step===3 ? 'var(--accent2)' : '#cbd5e1';
-    document.getElementById('obDot3').style.width = step===3 ? '24px' : '8px';
+function skipTour() {
+    state.isFirstTime = false; saveState();
+    document.getElementById('tourStartModal').style.display = 'none';
+    endTour();
+    showToast('Tur dilewati. Selamat mencoba!');
 }
 
-function skipOnboarding() {
-    state.isFirstTime = false;
-    saveState();
-    document.getElementById('onboardingModal').style.display = 'none';
-    refreshHome();
-    showToast('Tutorial dilewati');
+function startTour() {
+    document.getElementById('tourStartModal').style.display = 'none';
+    document.getElementById('tourOverlay').style.display = 'block';
+    tourStep = 0;
+    showTourStep();
 }
 
-function finishOnboarding() {
-    const name = document.getElementById('obName').value.trim();
-    const farmName = document.getElementById('obFarmName').value.trim() || 'Sawah Utama';
-    const farmArea = parseFloat(document.getElementById('obFarmArea').value) || 1.0;
-    const plantingDate = document.getElementById('obPlantingDate').value;
+function showTourStep() {
+    if (tourStep >= tourSteps.length) { endTour(); return; }
     
-    if (name) state.profile.name = name;
-    
-    state.farms[0] = { id: 'default', name: farmName, area: farmArea, variety: 'IR64', location: '' };
-    
-    if (plantingDate) {
-        state.plantings = [{ field: 'default', date: plantingDate, overrides: {}, notes: [] }];
+    // Clear previous highlight
+    if (currentHighlight) {
+        currentHighlight.style.zIndex = '';
+        currentHighlight.style.position = '';
+        currentHighlight.style.background = '';
     }
+
+    const step = tourSteps[tourStep];
     
-    state.isFirstTime = false;
-    saveState();
+    // Switch page if needed
+    if (step.page) showPage(step.page);
     
-    document.getElementById('onboardingModal').style.display = 'none';
-    refreshHome();
-    refreshCalendar();
-    refreshDashboard();
-    
-    showToast('Setup Selesai! Selamat datang di BWD AI 🎉');
+    setTimeout(() => {
+        const el = document.querySelector(step.target);
+        if (!el) { nextTourStep(); return; }
+        
+        currentHighlight = el;
+        // Ensure element pops above overlay
+        const computedPos = window.getComputedStyle(el).position;
+        if (computedPos === 'static') el.style.position = 'relative';
+        el.style.zIndex = '9999';
+        if (el.tagName === 'BUTTON' && !el.style.background) el.style.background = 'white';
+        
+        // Setup Tooltip
+        const tt = document.getElementById('tourTooltip');
+        document.getElementById('tourTitle').innerHTML = step.title;
+        document.getElementById('tourText').innerHTML = step.text;
+        document.getElementById('tourProgress').innerHTML = `${tourStep + 1} dari ${tourSteps.length}`;
+        document.getElementById('tourNextBtn').innerHTML = tourStep === tourSteps.length - 1 ? 'Selesai' : 'Lanjut';
+        
+        // Positioning
+        tt.style.display = 'block';
+        const rect = el.getBoundingClientRect();
+        const ttRect = tt.getBoundingClientRect();
+        const arrow = document.getElementById('tourArrow');
+        
+        let top, left;
+        if (step.align === 'bottom') {
+            top = rect.top - ttRect.height - 15;
+            left = rect.left + (rect.width/2) - (ttRect.width/2);
+            arrow.style.bottom = '-8px'; arrow.style.top = 'auto';
+            arrow.style.left = 'calc(50% - 8px)';
+        } else {
+            top = rect.bottom + 15;
+            left = rect.left + (rect.width/2) - (ttRect.width/2);
+            arrow.style.top = '-8px'; arrow.style.bottom = 'auto';
+            arrow.style.left = 'calc(50% - 8px)';
+        }
+        
+        // Screen bounds check
+        if (left < 10) left = 10;
+        if (left + ttRect.width > window.innerWidth - 10) left = window.innerWidth - ttRect.width - 10;
+        
+        tt.style.top = `${top}px`;
+        tt.style.left = `${left}px`;
+        
+    }, 100); // Wait for transition
+}
+
+function nextTourStep() {
+    tourStep++;
+    showTourStep();
+}
+
+function endTour() {
+    document.getElementById('tourOverlay').style.display = 'none';
+    document.getElementById('tourTooltip').style.display = 'none';
+    if (currentHighlight) {
+        currentHighlight.style.zIndex = '';
+        currentHighlight.style.position = '';
+        currentHighlight.style.background = '';
+    }
+    if (state.isFirstTime) {
+        state.isFirstTime = false;
+        saveState();
+        showToast('Tur selesai! Anda siap bertani.');
+    }
 }
 
 // === IRRI Tables ===
