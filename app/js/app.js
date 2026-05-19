@@ -58,13 +58,11 @@ function startTour() {
     
     const hole = document.getElementById('tourHole');
     hole.style.display = 'block';
-    // Initialize hole to cover everything first
     hole.style.borderTopWidth = (window.innerHeight/2) + 'px';
     hole.style.borderBottomWidth = (window.innerHeight/2) + 'px';
     hole.style.borderLeftWidth = (window.innerWidth/2) + 'px';
     hole.style.borderRightWidth = (window.innerWidth/2) + 'px';
     
-    document.getElementById('tourBlocker').style.display = 'block';
     tourStep = 0;
     showTourStep();
 }
@@ -85,7 +83,7 @@ function showTourStep() {
         
         // Update Hole Overlay to cutout around the element
         const hole = document.getElementById('tourHole');
-        const padding = 4; // Add a little breathing room around the element
+        const padding = 6;
         const topH = Math.max(0, rect.top - padding);
         const bottomH = Math.max(0, window.innerHeight - rect.bottom - padding);
         const leftH = Math.max(0, rect.left - padding);
@@ -103,8 +101,9 @@ function showTourStep() {
         document.getElementById('tourProgress').innerHTML = `${tourStep + 1} dari ${tourSteps.length}`;
         document.getElementById('tourNextBtn').innerHTML = tourStep === tourSteps.length - 1 ? 'Selesai' : 'Lanjut';
         
-        // Positioning
+        // IMPORTANT: Must display block BEFORE getBoundingClientRect to get real height!
         tt.style.display = 'block';
+        
         const ttRect = tt.getBoundingClientRect();
         const arrow = document.getElementById('tourArrow');
         
@@ -129,7 +128,7 @@ function showTourStep() {
         tt.style.top = `${top}px`;
         tt.style.left = `${left}px`;
         
-    }, 150); // Wait for page transition if any
+    }, 300); // Wait 300ms for page transition to fully settle before calculating rects
 }
 
 function nextTourStep() {
@@ -139,7 +138,6 @@ function nextTourStep() {
 
 function endTour() {
     document.getElementById('tourHole').style.display = 'none';
-    document.getElementById('tourBlocker').style.display = 'none';
     document.getElementById('tourTooltip').style.display = 'none';
     
     if (state.isFirstTime) {
