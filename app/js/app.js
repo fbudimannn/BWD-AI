@@ -1072,6 +1072,12 @@ function deleteHistoryData() {
 }
 
 // === Helpers ===
+function resetApp() {
+    if(confirm('Peringatan: Semua data sawah, foto, kalender, dan laporan panen akan dihapus secara permanen. Anda yakin ingin mereset aplikasi?')) {
+        localStorage.removeItem(STORE_KEY);
+        window.location.reload();
+    }
+}
 function populateFarmSelects() {
     ['scanFieldSelect','calFieldSelect','dashFieldSelect'].forEach(id => {
         const el = document.getElementById(id); if(!el) return;
