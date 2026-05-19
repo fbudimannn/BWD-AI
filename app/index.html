@@ -531,7 +531,11 @@
     </div>
 
     <!-- ===== TOUR HIGHLIGHT & TOOLTIP ===== -->
-    <div id="tourOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:9998; transition:opacity 0.3s;"></div>
+    <!-- The hole overlay uses thick borders to create a transparent cutout over the target element -->
+    <div id="tourHole" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9998; border-style:solid; border-color:rgba(0,0,0,0.65); transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+    
+    <!-- An invisible blocker to prevent clicking on the highlighted element during tour -->
+    <div id="tourBlocker" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999;"></div>
     
     <div id="tourTooltip" style="display:none; position:fixed; z-index:10000; background:white; border-radius:16px; width:280px; padding:16px; box-shadow:0 12px 32px rgba(0,0,0,0.3); transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
         <div id="tourArrow" style="position:absolute; width:16px; height:16px; background:white; transform:rotate(45deg);"></div>

@@ -55,20 +55,22 @@ function skipTour() {
 
 function startTour() {
     document.getElementById('tourStartModal').style.display = 'none';
-    document.getElementById('tourOverlay').style.display = 'block';
+    
+    const hole = document.getElementById('tourHole');
+    hole.style.display = 'block';
+    // Initialize hole to cover everything first
+    hole.style.borderTopWidth = (window.innerHeight/2) + 'px';
+    hole.style.borderBottomWidth = (window.innerHeight/2) + 'px';
+    hole.style.borderLeftWidth = (window.innerWidth/2) + 'px';
+    hole.style.borderRightWidth = (window.innerWidth/2) + 'px';
+    
+    document.getElementById('tourBlocker').style.display = 'block';
     tourStep = 0;
     showTourStep();
 }
 
 function showTourStep() {
     if (tourStep >= tourSteps.length) { endTour(); return; }
-    
-    // Clear previous highlight
-    if (currentHighlight) {
-        currentHighlight.style.zIndex = '';
-        currentHighlight.style.position = '';
-        currentHighlight.style.background = '';
-    }
 
     const step = tourSteps[tourStep];
     
@@ -79,12 +81,20 @@ function showTourStep() {
         const el = document.querySelector(step.target);
         if (!el) { nextTourStep(); return; }
         
-        currentHighlight = el;
-        // Ensure element pops above overlay
-        const computedPos = window.getComputedStyle(el).position;
-        if (computedPos === 'static') el.style.position = 'relative';
-        el.style.zIndex = '9999';
-        if (el.tagName === 'BUTTON' && !el.style.background) el.style.background = 'white';
+        const rect = el.getBoundingClientRect();
+        
+        // Update Hole Overlay to cutout around the element
+        const hole = document.getElementById('tourHole');
+        const padding = 4; // Add a little breathing room around the element
+        const topH = Math.max(0, rect.top - padding);
+        const bottomH = Math.max(0, window.innerHeight - rect.bottom - padding);
+        const leftH = Math.max(0, rect.left - padding);
+        const rightH = Math.max(0, window.innerWidth - rect.right - padding);
+        
+        hole.style.borderTopWidth = topH + 'px';
+        hole.style.borderBottomWidth = bottomH + 'px';
+        hole.style.borderLeftWidth = leftH + 'px';
+        hole.style.borderRightWidth = rightH + 'px';
         
         // Setup Tooltip
         const tt = document.getElementById('tourTooltip');
@@ -95,18 +105,17 @@ function showTourStep() {
         
         // Positioning
         tt.style.display = 'block';
-        const rect = el.getBoundingClientRect();
         const ttRect = tt.getBoundingClientRect();
         const arrow = document.getElementById('tourArrow');
         
         let top, left;
         if (step.align === 'bottom') {
-            top = rect.top - ttRect.height - 15;
+            top = rect.top - ttRect.height - 20;
             left = rect.left + (rect.width/2) - (ttRect.width/2);
             arrow.style.bottom = '-8px'; arrow.style.top = 'auto';
             arrow.style.left = 'calc(50% - 8px)';
         } else {
-            top = rect.bottom + 15;
+            top = rect.bottom + 20;
             left = rect.left + (rect.width/2) - (ttRect.width/2);
             arrow.style.top = '-8px'; arrow.style.bottom = 'auto';
             arrow.style.left = 'calc(50% - 8px)';
@@ -115,11 +124,12 @@ function showTourStep() {
         // Screen bounds check
         if (left < 10) left = 10;
         if (left + ttRect.width > window.innerWidth - 10) left = window.innerWidth - ttRect.width - 10;
+        if (top < 10) top = rect.bottom + 20; // fallback if it clips top
         
         tt.style.top = `${top}px`;
         tt.style.left = `${left}px`;
         
-    }, 100); // Wait for transition
+    }, 150); // Wait for page transition if any
 }
 
 function nextTourStep() {
@@ -128,13 +138,10 @@ function nextTourStep() {
 }
 
 function endTour() {
-    document.getElementById('tourOverlay').style.display = 'none';
+    document.getElementById('tourHole').style.display = 'none';
+    document.getElementById('tourBlocker').style.display = 'none';
     document.getElementById('tourTooltip').style.display = 'none';
-    if (currentHighlight) {
-        currentHighlight.style.zIndex = '';
-        currentHighlight.style.position = '';
-        currentHighlight.style.background = '';
-    }
+    
     if (state.isFirstTime) {
         state.isFirstTime = false;
         saveState();
