@@ -1304,7 +1304,7 @@ function showToast(message) {
     const toast = document.getElementById('toast');
     document.getElementById('toastText').textContent = message;
     toast.style.transform = 'translateX(-50%) translateY(0)';
-    setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(-100px)'; }, 3500);
+    setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(-200px)'; }, 3500);
 }
 
 function deleteHistoryData() {
