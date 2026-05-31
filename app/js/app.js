@@ -395,7 +395,19 @@ function quickLogFertilizer() {
     if (isNaN(actualDose)) actualDose = recDose;
     
     if (!state.fertLogs) state.fertLogs = [];
-    const logId = `${fieldId}_quick_${Date.now()}`;
+    
+    // Hubungkan dengan jadwal kalender jika berdekatan (±3 hari dari 26 HST atau 36 HST)
+    const schedFerts = [26, 36];
+    const closestFert = schedFerts.find(sh => Math.abs(hst - sh) <= 3);
+    let logId = `${fieldId}_quick_${Date.now()}`;
+    if (closestFert !== undefined) {
+        const targetId = `${fieldId}_${closestFert}`;
+        const alreadyExists = state.fertLogs.some(l => (typeof l === 'string' ? l === targetId : l.id === targetId));
+        if (!alreadyExists) {
+            logId = targetId;
+        }
+    }
+    
     state.fertLogs.push({ id: logId, field: fieldId, hst: hst, dose: actualDose, date: new Date().toISOString() });
     saveState();
     
@@ -485,13 +497,32 @@ function refreshCalendar() {
     schedItems.forEach(s => {
         const dt = new Date(d0); dt.setDate(dt.getDate()+s.hst);
         const logId = `${field}_${s.hst}`;
-        const isLogged = state.fertLogs && state.fertLogs.some(l => (typeof l === 'string' ? l === logId : l.id === logId));
+        
+        let isLogged = false;
+        let doseText = '';
+        let onClickAction = '';
+        
+        if (s.type === 'fert') {
+            isLogged = state.fertLogs && state.fertLogs.some(l => (typeof l === 'string' ? l === logId : l.id === logId));
+            if (isLogged) {
+                const logEntry = state.fertLogs.find(l => typeof l === 'object' && l.id === logId);
+                doseText = logEntry ? ` (${logEntry.dose}kg)` : '';
+                const logKey = logEntry ? logEntry.id : logId;
+                onClickAction = `onclick="openHistoryModal('fert', '${logKey}')"`;
+            }
+        } else if (s.type === 'scan') {
+            // Check if there is a scan for this field completed within ±3 days of the target stage's HST
+            const scanEntry = state.scans.find(sc => sc.field === field && Math.abs(Math.floor((new Date(sc.date) - d0) / (1000*60*60*24)) - s.hst) <= 3);
+            if (scanEntry) {
+                isLogged = true;
+                doseText = ` (BWD ${scanEntry.bwd.toFixed(1)})`;
+                onClickAction = `onclick="openHistoryModal('scan', '${scanEntry.id}')"`;
+            }
+        }
         
         let statusHtml = '';
         if (isLogged) {
-            const logEntry = state.fertLogs.find(l => typeof l === 'object' && l.id === logId);
-            const doseText = logEntry ? ` (${logEntry.dose}kg)` : '';
-            statusHtml = `<span class="sched-status done" style="cursor:pointer; transition:transform 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="openHistoryModal('fert', '${logEntry ? logEntry.id : logId}')"><i class="ph-fill ph-check-circle"></i> Selesai${doseText}</span>`;
+            statusHtml = `<span class="sched-status done" style="cursor:pointer; transition:transform 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" ${onClickAction}><i class="ph-fill ph-check-circle"></i> Selesai${doseText}</span>`;
         } else if (hst >= s.hst) {
             if (s.type === 'fert') {
                 statusHtml = `<button class="btn btn-primary" style="padding:4px 10px; font-size:11px; border-radius:12px; margin-left:auto; flex:none" onclick="markFertilized('${logId}', '${field}', ${s.hst})">Tandai Dipupuk</button>`;
