@@ -32,12 +32,12 @@ let tourStep = 0;
 let currentHighlight = null;
 
 const tourSteps = [
-    { target: '[data-page="profile"]', title: '1. Atur Profil Anda', text: 'Selamat datang! Langkah pertama, pergi ke halaman Profil untuk memasukkan nama Anda agar aplikasi bisa menyapa.', page: 'home', align: 'top' },
-    { target: '#profileName', title: 'Ketikan Nama Anda', text: 'Di sinilah Anda bisa mengubah nama dan preferensi notifikasi Anda.', page: 'profile', align: 'bottom' },
-    { target: '#btnAddFarmHome', title: '2. Daftarkan Sawah', text: 'Kembali ke Beranda. Gunakan tombol ini untuk mendaftarkan lahan sawah Anda (Nama & Luas Hektar). Anda bisa mendaftarkan lebih dari satu sawah!', page: 'home', align: 'top' },
+    { target: '[data-page="profile"]', title: '1. Atur Profil Anda', text: 'Selamat datang! Langkah pertama, buka halaman Profil untuk mengatur data Anda.', page: 'home', align: 'top' },
+    { target: '#profileName', title: 'Ketik Nama Anda', text: 'Di sinilah Anda bisa mengubah nama agar aplikasi bisa menyapa Anda.', page: 'profile', align: 'bottom' },
+    { target: '.btn-add-farm', title: '2. Daftarkan Sawah', text: 'Gunakan tombol ini di halaman Profil untuk mendaftarkan lahan sawah Anda (Nama & Luas Hektar) agar dapat dipantau.', page: 'profile', align: 'top' },
     { target: '#calFieldSelect', title: '3. Atur Jadwal Tanam', text: 'Setelah sawah terdaftar, buka Kalender dan atur Tanggal Tanam. Kami akan langsung membuatkan jadwal panen & pemupukan.', page: 'calendar', align: 'bottom' },
-    { target: '.capture-area', title: '4. Waktunya Scan Daun!', text: 'Saat jadwal pemupukan tiba, buka halaman ini di sawah. Tap area ini untuk memfoto daun padi Anda secara langsung.', page: 'scan', align: 'bottom' },
-    { target: '#dashBwdCard', title: '5. Pantau Penghematan', text: 'Terakhir, semua riwayat foto dan anjuran dosis Urea akan dikalkulasi di Dashboard ini. Anda siap bertani cerdas!', page: 'dashboard', align: 'bottom' }
+    { target: '.capture-area', title: '4. Waktunya Scan Daun!', text: 'Saat jadwal pemupukan tiba, buka halaman ini di sawah. Tap area ini untuk memfoto daun padi Anda secara langsung.', page: 'scan', align: 'top' },
+    { target: '.dash-stats', title: '5. Pantau Penghematan', text: 'Terakhir, semua riwayat foto dan anjuran dosis Urea akan dikalkulasi di Dashboard ini. Anda siap bertani cerdas!', page: 'dashboard', align: 'bottom' }
 ];
 
 function checkOnboarding() {
@@ -108,12 +108,14 @@ function showTourStep() {
         const arrow = document.getElementById('tourArrow');
         
         let top, left;
-        if (step.align === 'bottom') {
+        if (step.align === 'top') {
+            // align: 'top' places the tooltip ABOVE the target element
             top = rect.top - ttRect.height - 20;
             left = rect.left + (rect.width/2) - (ttRect.width/2);
             arrow.style.bottom = '-8px'; arrow.style.top = 'auto';
             arrow.style.left = 'calc(50% - 8px)';
         } else {
+            // align: 'bottom' places the tooltip BELOW the target element
             top = rect.bottom + 20;
             left = rect.left + (rect.width/2) - (ttRect.width/2);
             arrow.style.top = '-8px'; arrow.style.bottom = 'auto';
