@@ -467,6 +467,55 @@
             <div id="seasonDetailContent"></div>
         </div>
     </div>
+
+    <!-- ===== RETROACTIVE SETUP MODAL ===== -->
+    <div id="retroactiveModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:24px; width:92%; max-width:420px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.15); position:relative; max-height:85vh; overflow-y:auto; box-sizing:border-box;">
+            <h3 style="margin-top:0; margin-bottom:12px; font-size:18px; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <i class="ph-fill ph-question" style="color:var(--accent2); font-size: 22px;"></i> Penyesuaian Riwayat Sawah
+            </h3>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.5;" id="retroactiveText">
+                Sepertinya sawah Anda sudah ditanam sejak...
+            </p>
+            
+            <div id="retroactiveOptions" style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;">
+                <!-- Option 1 (26 HST) -->
+                <div id="retroOpt1" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--text-primary); cursor:pointer; width: 100%;">
+                            <input type="checkbox" id="retroCheck1" style="width:18px; height:18px; accent-color:var(--accent);" onchange="toggleRetroInput(1)">
+                            Pemupukan #1 (26 HST)
+                        </label>
+                    </div>
+                    <div id="retroInputDiv1" style="display:none; align-items:center; gap:8px; margin-left:26px;">
+                        <span style="font-size:12px; color:var(--text-muted);">Jumlah pupuk:</span>
+                        <input type="number" id="retroDose1" value="75" style="width:70px; padding:6px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit; text-align:center; font-weight:700;">
+                        <span style="font-size:12px; color:var(--text-muted);">kg/ha</span>
+                    </div>
+                </div>
+
+                <!-- Option 2 (36 HST) -->
+                <div id="retroOpt2" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--text-primary); cursor:pointer; width: 100%;">
+                            <input type="checkbox" id="retroCheck2" style="width:18px; height:18px; accent-color:var(--accent);" onchange="toggleRetroInput(2)">
+                            Pemupukan #2 (36 HST)
+                        </label>
+                    </div>
+                    <div id="retroInputDiv2" style="display:none; align-items:center; gap:8px; margin-left:26px;">
+                        <span style="font-size:12px; color:var(--text-muted);">Jumlah pupuk:</span>
+                        <input type="number" id="retroDose2" value="75" style="width:70px; padding:6px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit; text-align:center; font-weight:700;">
+                        <span style="font-size:12px; color:var(--text-muted);">kg/ha</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:12px;">
+                <button class="btn btn-outline" onclick="closeRetroactiveModal()" style="flex:1; border-radius:12px; padding:10px;">Lewati</button>
+                <button class="btn btn-primary" onclick="saveRetroactiveHistory()" style="flex:1; border-radius:12px; padding:10px;">Simpan</button>
+            </div>
+        </div>
+    </div>
     <!-- ===== FARM MODAL (Edit/Tambah Sawah) ===== -->
     <div id="farmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
         <div class="modal-content" style="background:var(--bg-primary); border-radius:24px; width:90%; max-width:400px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); position:relative; overflow-y:auto; max-height:90vh;">

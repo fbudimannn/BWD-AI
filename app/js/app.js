@@ -281,7 +281,17 @@ function analyzeLeaf() {
 
             // Save scan
             const field = document.getElementById('scanFieldSelect').value;
-            state.scans.push({ id: Date.now(), date: new Date().toISOString(), bwd: bwdScore, field, yield: state.selectedYield, dose: getDose(bwdScore, state.selectedYield), colors: colorData, thumb: thumbData });
+            const planting = state.plantings.find(p => p.field === field);
+            let hst = -1;
+            if (planting) {
+                const d0 = new Date(planting.date);
+                hst = Math.floor((new Date() - d0) / (1000*60*60*24));
+            }
+            let recDose = getDose(bwdScore, state.selectedYield);
+            if (hst > 55) {
+                recDose = 0;
+            }
+            state.scans.push({ id: Date.now(), date: new Date().toISOString(), bwd: bwdScore, field, yield: state.selectedYield, dose: recDose, colors: colorData, thumb: thumbData });
             saveState(); checkAchievements();
             
             setTimeout(() => { 
@@ -362,9 +372,29 @@ function displayResults(bwd, colors) {
     document.getElementById('statusIcon').innerHTML=s.icon;
     const sb=document.getElementById('statusBadge'); sb.textContent=s.label; sb.style.background=s.color+'25'; sb.style.color=s.color;
     document.getElementById('statusDesc').textContent=s.desc;
-    const dose = getDose(bwd, state.selectedYield);
-    document.getElementById('doseValue').textContent=dose;
-    document.getElementById('timingValue').textContent=TIMING[s.level];
+    
+    // Check if crop is past fertilization window (>55 HST)
+    const field = document.getElementById('scanFieldSelect').value;
+    const planting = state.plantings.find(p => p.field === field);
+    let hst = -1;
+    if (planting) {
+        const d0 = new Date(planting.date);
+        hst = Math.floor((new Date() - d0) / (1000*60*60*24));
+    }
+    
+    let dose = getDose(bwd, state.selectedYield);
+    if (hst > 55) {
+        dose = 0;
+        document.getElementById('doseValue').textContent = '0';
+        document.getElementById('timingValue').innerHTML = `<span style="color:#ef4444; font-weight:700;"><i class="ph-fill ph-warning"></i> Tidak direkomendasikan</span><br><span style="font-size:12px; color:var(--text-secondary);">Tanaman Anda berumur ${hst} HST (fase reproduktif/pematangan). Pemupukan nitrogen (Urea) berlebih di fase ini dapat memperlambat pematangan, memicu serangan hama/penyakit, dan membuat tanaman mudah roboh. Fokus pada pengairan.</span>`;
+    } else {
+        document.getElementById('doseValue').textContent = dose;
+        let timingMsg = TIMING[s.level];
+        if (hst === -1) {
+            timingMsg += `<br><span style="font-size:11px; color:#d97706; font-weight:600; margin-top:4px; display:inline-block;"><i class="ph-fill ph-info"></i> Tips: Atur tanggal tanam di Kalender untuk rekomendasi lebih presisi sesuai fase tumbuh.</span>`;
+        }
+        document.getElementById('timingValue').innerHTML = timingMsg;
+    }
     
     animBar('barR','valR',colors.meanR,255); 
     animBar('barG','valG',colors.meanG,255); 
@@ -426,6 +456,14 @@ function setPlantingDate() {
     if (existing>=0) state.plantings[existing].date=date; else state.plantings.push({field,date});
     saveState(); refreshCalendar(); generateNotifications();
     
+    // Check if retroactive onboarding is needed
+    const d0 = new Date(date);
+    const today = new Date();
+    const hst = Math.floor((today - d0) / (1000 * 60 * 60 * 24));
+    if (hst >= 25) {
+        openRetroactiveModal(field, hst, date);
+    }
+    
     // Tour integration
     if (isTourActive() && !isProgrammaticAdvance && tourStep === 4) {
         tourStep = 5;
@@ -461,14 +499,34 @@ function refreshCalendar() {
         {name:'Pengisian',hst:90,icon:'<i class="ph-fill ph-bowl-food"></i>',desc:'Pengisian bulir'},
         {name:'Panen',hst:120,icon:'<i class="ph-fill ph-target"></i>',desc:'Waktu panen!'}
     ];
+    // Find active growth stage index
+    let activeIdx = -1;
+    for (let i = 0; i < stages.length; i++) {
+        if (hst >= stages[i].hst) {
+            activeIdx = i;
+        }
+    }
+
     let tlHtml = '';
-    stages.forEach(s => {
+    stages.forEach((s, idx) => {
         const overrideHst = planting.overrides[s.hst];
         const stageDate = new Date(d0);
         if (overrideHst) { stageDate.setTime(new Date(overrideHst).getTime()); } else { stageDate.setDate(stageDate.getDate()+s.hst); }
-        const cls = hst>=s.hst+5?'past':hst>=s.hst-2?'current':'future';
-        const badge = cls==='past'?'done':cls==='current'?'active':'upcoming';
-        const badgeText = cls==='past'?'<i class="ph-fill ph-check-circle"></i> Selesai':cls==='current'?'<i class="ph-fill ph-map-pin"></i> Saat Ini':'<i class="ph-fill ph-hourglass"></i> Mendatang';
+        
+        let cls = 'future';
+        let badge = 'upcoming';
+        let badgeText = '<i class="ph-fill ph-hourglass"></i> Mendatang';
+        
+        if (idx < activeIdx) {
+            cls = 'past';
+            badge = 'done';
+            badgeText = '<i class="ph-fill ph-clock"></i> Sudah Lewat';
+        } else if (idx === activeIdx) {
+            cls = 'current';
+            badge = 'active';
+            badgeText = '<i class="ph-fill ph-map-pin"></i> Saat Ini';
+        }
+        
         const phaseNotes = planting.notes.filter(n => n.hst === s.hst);
         let notesHtml = '';
         if (phaseNotes.length > 0) {
@@ -740,6 +798,89 @@ function markFertilized(logId, fieldId, hst) {
     state.fertLogs.push({ id: logId, field: fieldId, hst: hst, dose: actualDose, date: new Date().toISOString() });
     saveState();
     refreshCalendar();
+}
+
+let tempRetroField = '';
+let tempRetroPlantingDate = '';
+
+function openRetroactiveModal(field, hst, plantingDate) {
+    tempRetroField = field;
+    tempRetroPlantingDate = plantingDate;
+    
+    const formattedDate = formatDate(new Date(plantingDate));
+    document.getElementById('retroactiveText').innerHTML = `Sepertinya sawah Anda sudah ditanam sejak <strong>${formattedDate}</strong> (umur tanaman saat ini <strong>${hst} HST</strong>).<br><br>Apakah Anda sudah melakukan pemupukan Urea susulan sebelumnya?`;
+    
+    // Reset inputs
+    document.getElementById('retroCheck1').checked = false;
+    document.getElementById('retroCheck2').checked = false;
+    document.getElementById('retroInputDiv1').style.display = 'none';
+    document.getElementById('retroInputDiv2').style.display = 'none';
+    
+    // Hide or show opt2 based on HST
+    if (hst >= 35) {
+        document.getElementById('retroOpt2').style.display = 'flex';
+    } else {
+        document.getElementById('retroOpt2').style.display = 'none';
+    }
+    
+    document.getElementById('retroactiveModal').style.display = 'flex';
+}
+
+function toggleRetroInput(num) {
+    const checked = document.getElementById(`retroCheck${num}`).checked;
+    document.getElementById(`retroInputDiv${num}`).style.display = checked ? 'flex' : 'none';
+}
+
+function closeRetroactiveModal() {
+    document.getElementById('retroactiveModal').style.display = 'none';
+}
+
+function saveRetroactiveHistory() {
+    if (!state.fertLogs) state.fertLogs = [];
+    
+    const fieldId = tempRetroField;
+    const d0 = new Date(tempRetroPlantingDate);
+    
+    // Save Pemupukan #1
+    if (document.getElementById('retroCheck1').checked) {
+        const dose = parseFloat(document.getElementById('retroDose1').value) || 75;
+        const logId = `${fieldId}_26`;
+        const exists = state.fertLogs.some(l => (typeof l === 'string' ? l === logId : l.id === logId));
+        if (!exists) {
+            const fertDate = new Date(d0);
+            fertDate.setDate(fertDate.getDate() + 26);
+            state.fertLogs.push({
+                id: logId,
+                field: fieldId,
+                hst: 26,
+                dose: dose,
+                date: fertDate.toISOString()
+            });
+        }
+    }
+    
+    // Save Pemupukan #2
+    if (document.getElementById('retroCheck2').checked && document.getElementById('retroOpt2').style.display !== 'none') {
+        const dose = parseFloat(document.getElementById('retroDose2').value) || 75;
+        const logId = `${fieldId}_36`;
+        const exists = state.fertLogs.some(l => (typeof l === 'string' ? l === logId : l.id === logId));
+        if (!exists) {
+            const fertDate = new Date(d0);
+            fertDate.setDate(fertDate.getDate() + 36);
+            state.fertLogs.push({
+                id: logId,
+                field: fieldId,
+                hst: 36,
+                dose: dose,
+                date: fertDate.toISOString()
+            });
+        }
+    }
+    
+    saveState();
+    refreshCalendar();
+    closeRetroactiveModal();
+    showToast('Riwayat pemupukan tersimpan!');
 }
 
 // === Dashboard ===
