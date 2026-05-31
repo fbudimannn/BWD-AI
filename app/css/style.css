@@ -21,8 +21,8 @@
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.6;overflow-x:hidden;padding-top:60px;padding-bottom:76px}
-h1,h2,h3,h4,h5,h6,.page-title,.section-title,.section-label,.topbar-title{font-family:'Manrope',sans-serif;letter-spacing:-0.01em}
+body{font-family:'Poppins',sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.6;overflow-x:hidden;padding-top:60px;padding-bottom:76px}
+h1,h2,h3,h4,h5,h6,.page-title,.section-title,.section-label,.topbar-title{font-family:'Poppins',sans-serif;letter-spacing:-0.01em}
 .container{max-width:800px;margin:0 auto;padding:0 16px}
 
 /* Topbar */
