@@ -25,6 +25,12 @@ function showPage(page) {
     if (page === 'dashboard') refreshDashboard();
     if (page === 'profile') refreshProfile();
     if (page === 'calendar') refreshCalendar();
+    
+    // Tour integration
+    if (isTourActive() && tourStep === 0 && page === 'profile') {
+        tourStep = 1;
+        setTimeout(() => { showTourStep(); }, 100);
+    }
 }
 
 // === Walkthrough Tour ===
@@ -32,10 +38,11 @@ let tourStep = 0;
 let currentHighlight = null;
 
 const tourSteps = [
-    { target: '[data-page="profile"]', title: '1. Atur Profil Anda', text: 'Selamat datang! Langkah pertama, buka halaman Profil untuk mengatur data Anda.', page: 'home', align: 'top' },
-    { target: '#profileName', title: 'Ketik Nama Anda', text: 'Di sinilah Anda bisa mengubah nama agar aplikasi bisa menyapa Anda.', page: 'profile', align: 'bottom' },
-    { target: '.btn-add-farm', title: '2. Daftarkan Sawah', text: 'Gunakan tombol ini di halaman Profil untuk mendaftarkan lahan sawah Anda (Nama & Luas Hektar) agar dapat dipantau.', page: 'profile', align: 'top' },
-    { target: '#calFieldSelect', title: '3. Atur Jadwal Tanam', text: 'Setelah sawah terdaftar, buka Kalender dan atur Tanggal Tanam. Kami akan langsung membuatkan jadwal panen & pemupukan.', page: 'calendar', align: 'bottom' },
+    { target: '[data-page="profile"]', title: '1. Atur Profil Anda', text: 'Selamat datang! Langkah pertama, silakan klik menu **Profil** di bawah ini untuk memulai.', page: 'home', align: 'top' },
+    { target: '#profileName', title: 'Ketik Nama Anda', text: 'Ketik nama Anda di sini agar aplikasi bisa memberikan sapaan personalisasi.', page: 'profile', align: 'bottom' },
+    { target: '.btn-add-farm', title: '2. Daftarkan Sawah', text: 'Klik tombol **+ Tambah Sawah** untuk mendaftarkan lahan sawah pertama Anda.', page: 'profile', align: 'top' },
+    { target: '#farmInputName', title: 'Isi Data Sawah Baru', text: 'Ketik nama sawah (misal: Sawah Utama) dan luas lahan (hektar), lalu klik **Simpan Sawah**.', page: 'profile', align: 'bottom' },
+    { target: '#plantingDate', title: '3. Atur Jadwal Tanam', text: 'Setelah sawah terdaftar, buka Kalender dan atur Tanggal Tanam. Kami akan langsung membuatkan jadwal panen & pemupukan.', page: 'calendar', align: 'bottom' },
     { target: '.capture-area', title: '4. Waktunya Scan Daun!', text: 'Saat jadwal pemupukan tiba, buka halaman ini di sawah. Tap area ini untuk memfoto daun padi Anda secara langsung.', page: 'scan', align: 'top' },
     { target: '.dash-stats', title: '5. Pantau Penghematan', text: 'Terakhir, semua riwayat foto dan anjuran dosis Urea akan dikalkulasi di Dashboard ini. Anda siap bertani cerdas!', page: 'dashboard', align: 'bottom' }
 ];
@@ -43,6 +50,19 @@ const tourSteps = [
 function checkOnboarding() {
     if (state.isFirstTime) {
         document.getElementById('tourStartModal').style.display = 'flex';
+    }
+}
+
+function isTourActive() {
+    const hole = document.getElementById('tourHole');
+    return hole && hole.style.display === 'block';
+}
+
+function closeFarmModal() {
+    document.getElementById('farmModal').style.display = 'none';
+    if (isTourActive() && tourStep === 3) {
+        endTour();
+        showToast('Tutorial dibatalkan karena formulir ditutup.');
     }
 }
 
@@ -134,6 +154,33 @@ function showTourStep() {
 }
 
 function nextTourStep() {
+    // Perform programmatic actions to avoid getting stuck if user clicks "Lanjut"
+    if (tourStep === 0) {
+        showPage('profile');
+    } else if (tourStep === 1) {
+        saveProfile();
+    } else if (tourStep === 2) {
+        openFarmModal('new');
+    } else if (tourStep === 3) {
+        const nameInput = document.getElementById('farmInputName');
+        const areaInput = document.getElementById('farmInputArea');
+        if (!nameInput.value) nameInput.value = 'Sawah Percobaan';
+        if (!areaInput.value) areaInput.value = '1.0';
+        saveFarmData();
+    } else if (tourStep === 4) {
+        const field = document.getElementById('calFieldSelect').value;
+        const existing = state.plantings.find(p => p.field === field);
+        if (!existing) {
+            const dummyDate = new Date();
+            dummyDate.setDate(dummyDate.getDate() - 25);
+            document.getElementById('plantingDate').value = dummyDate.toISOString().split('T')[0];
+            setPlantingDate();
+        }
+        showPage('scan');
+    } else if (tourStep === 5) {
+        showPage('dashboard');
+    }
+    
     tourStep++;
     showTourStep();
 }
@@ -235,6 +282,12 @@ function analyzeLeaf() {
                 }
                 btn.innerHTML = '<span><i class="ph-fill ph-brain"></i></span> Analisis Sekarang'; 
                 btn.disabled = false; btn.classList.remove('analyzing'); 
+                
+                // Tour integration
+                if (isTourActive() && tourStep === 5) {
+                    tourStep = 6;
+                    setTimeout(() => { showTourStep(); }, 100);
+                }
             }, 1000);
         } catch (err) {
             console.error(err);
@@ -350,6 +403,12 @@ function setPlantingDate() {
     const existing = state.plantings.findIndex(p=>p.field===field);
     if (existing>=0) state.plantings[existing].date=date; else state.plantings.push({field,date});
     saveState(); refreshCalendar(); generateNotifications();
+    
+    // Tour integration
+    if (isTourActive() && tourStep === 4) {
+        tourStep = 5;
+        setTimeout(() => { showTourStep(); }, 100);
+    }
 }
 
 function resetPlantingDate() {
@@ -853,6 +912,12 @@ function openFarmModal(id) {
     }
     
     document.getElementById('farmModal').style.display = 'flex';
+    
+    // Tour integration
+    if (isTourActive() && tourStep === 2 && isNew) {
+        tourStep = 3;
+        setTimeout(() => { showTourStep(); }, 100);
+    }
 }
 
 function handleFarmPhotoUpload(e) {
@@ -908,6 +973,12 @@ function saveFarmData() {
     
     document.getElementById('farmModal').style.display = 'none';
     saveState(); refreshProfile(); populateFarmSelects();
+    
+    // Tour integration
+    if (isTourActive() && tourStep === 3) {
+        tourStep = 4;
+        setTimeout(() => { showTourStep(); }, 100);
+    }
 }
 
 function deleteFarmData() {
