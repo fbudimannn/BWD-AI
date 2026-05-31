@@ -27,7 +27,7 @@ function showPage(page) {
     if (page === 'calendar') refreshCalendar();
     
     // Tour integration
-    if (isTourActive() && tourStep === 0 && page === 'profile') {
+    if (isTourActive() && !isProgrammaticAdvance && tourStep === 0 && page === 'profile') {
         tourStep = 1;
         setTimeout(() => { showTourStep(); }, 100);
     }
@@ -36,6 +36,7 @@ function showPage(page) {
 // === Walkthrough Tour ===
 let tourStep = 0;
 let currentHighlight = null;
+let isProgrammaticAdvance = false;
 
 const tourSteps = [
     { target: '[data-page="profile"]', title: '1. Atur Profil Anda', text: 'Selamat datang! Langkah pertama, silakan klik menu **Profil** di bawah ini untuk memulai.', page: 'home', align: 'top' },
@@ -56,6 +57,11 @@ function checkOnboarding() {
 function isTourActive() {
     const hole = document.getElementById('tourHole');
     return hole && hole.style.display === 'block';
+}
+
+function formatMarkdown(text) {
+    if (!text) return '';
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 }
 
 function closeFarmModal() {
@@ -117,7 +123,7 @@ function showTourStep() {
         // Setup Tooltip
         const tt = document.getElementById('tourTooltip');
         document.getElementById('tourTitle').innerHTML = step.title;
-        document.getElementById('tourText').innerHTML = step.text;
+        document.getElementById('tourText').innerHTML = formatMarkdown(step.text);
         document.getElementById('tourProgress').innerHTML = `${tourStep + 1} dari ${tourSteps.length}`;
         document.getElementById('tourNextBtn').innerHTML = tourStep === tourSteps.length - 1 ? 'Selesai' : 'Lanjut';
         
@@ -154,6 +160,8 @@ function showTourStep() {
 }
 
 function nextTourStep() {
+    isProgrammaticAdvance = true;
+    
     // Perform programmatic actions to avoid getting stuck if user clicks "Lanjut"
     if (tourStep === 0) {
         showPage('profile');
@@ -180,6 +188,8 @@ function nextTourStep() {
     } else if (tourStep === 5) {
         showPage('dashboard');
     }
+    
+    isProgrammaticAdvance = false;
     
     tourStep++;
     showTourStep();
@@ -284,7 +294,7 @@ function analyzeLeaf() {
                 btn.disabled = false; btn.classList.remove('analyzing'); 
                 
                 // Tour integration
-                if (isTourActive() && tourStep === 5) {
+                if (isTourActive() && !isProgrammaticAdvance && tourStep === 5) {
                     tourStep = 6;
                     setTimeout(() => { showTourStep(); }, 100);
                 }
@@ -405,7 +415,7 @@ function setPlantingDate() {
     saveState(); refreshCalendar(); generateNotifications();
     
     // Tour integration
-    if (isTourActive() && tourStep === 4) {
+    if (isTourActive() && !isProgrammaticAdvance && tourStep === 4) {
         tourStep = 5;
         setTimeout(() => { showTourStep(); }, 100);
     }
@@ -914,7 +924,7 @@ function openFarmModal(id) {
     document.getElementById('farmModal').style.display = 'flex';
     
     // Tour integration
-    if (isTourActive() && tourStep === 2 && isNew) {
+    if (isTourActive() && !isProgrammaticAdvance && tourStep === 2 && isNew) {
         tourStep = 3;
         setTimeout(() => { showTourStep(); }, 100);
     }
@@ -975,7 +985,7 @@ function saveFarmData() {
     saveState(); refreshProfile(); populateFarmSelects();
     
     // Tour integration
-    if (isTourActive() && tourStep === 3) {
+    if (isTourActive() && !isProgrammaticAdvance && tourStep === 3) {
         tourStep = 4;
         setTimeout(() => { showTourStep(); }, 100);
     }

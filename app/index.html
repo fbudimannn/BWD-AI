@@ -534,17 +534,17 @@
     <!-- The hole overlay uses thick borders to create a transparent cutout over the target element -->
     <div id="tourHole" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9998; border-style:solid; border-color:rgba(0,0,0,0.7); transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events:none; box-sizing:border-box;"></div>
     
-    <div id="tourTooltip" style="display:none; position:fixed; z-index:10000; background:white; border-radius:16px; width:280px; padding:16px; box-shadow:0 12px 32px rgba(0,0,0,0.3); transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-        <div id="tourArrow" style="position:absolute; width:16px; height:16px; background:white; transform:rotate(45deg);"></div>
-        <button onclick="skipTour()" style="position:absolute; top:12px; right:12px; background:#f1f5f9; border:none; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#64748b; cursor:pointer; z-index:3; font-size:14px;" title="Tutup Tutorial"><i class="ph-bold ph-x"></i></button>
-        <div style="position:relative; z-index:2; padding-right:16px;">
-            <h4 id="tourTitle" style="margin:0 0 8px 0; font-size:15px; font-weight:800; color:var(--text-primary);">Judul Tour</h4>
-            <p id="tourText" style="margin:0 0 16px 0; font-size:13px; color:var(--text-secondary); line-height:1.5;">Penjelasan fitur ada di sini.</p>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div id="tourProgress" style="font-size:11px; font-weight:700; color:#94a3b8;">1 dari 4</div>
-                <div style="display:flex; gap:8px;">
-                    <button onclick="skipTour()" style="background:none; border:none; color:#94a3b8; font-size:12px; font-weight:600; cursor:pointer;">Lewati</button>
-                    <button id="tourNextBtn" onclick="nextTourStep()" class="btn btn-primary" style="padding:6px 16px; border-radius:8px; font-size:12px; min-height:auto;">Lanjut</button>
+    <div id="tourTooltip" style="display:none; position:fixed; z-index:10000; background:white; border-radius:20px; width:290px; padding:20px; box-shadow:0 16px 48px rgba(46, 125, 50, 0.15); transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border:1px solid rgba(46, 125, 50, 0.12); box-sizing:border-box;">
+        <div id="tourArrow" style="position:absolute; width:16px; height:16px; background:white; transform:rotate(45deg); border-left:1px solid rgba(46, 125, 50, 0.08); border-top:1px solid rgba(46, 125, 50, 0.08);"></div>
+        <button onclick="skipTour()" style="position:absolute; top:16px; right:16px; background:#f0fdf4; border:none; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#166534; cursor:pointer; z-index:3; font-size:12px; transition:all 0.2s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'" title="Tutup Tutorial"><i class="ph-bold ph-x"></i></button>
+        <div style="position:relative; z-index:2; padding-right:12px;">
+            <h4 id="tourTitle" style="margin:0 0 8px 0; font-family:'Manrope',sans-serif; font-size:16px; font-weight:800; color:#1e293b;">Judul Tour</h4>
+            <p id="tourText" style="margin:0 0 20px 0; font-family:'Inter',sans-serif; font-size:13.5px; color:#475569; line-height:1.6; text-align:left;">Penjelasan fitur ada di sini.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:12px; margin-top:12px;">
+                <div id="tourProgress" style="font-family:'Inter',sans-serif; font-size:12px; font-weight:700; color:#94a3b8;">1 dari 7</div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <button onclick="skipTour()" style="background:none; border:none; color:#64748b; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer; padding:4px 8px;">Lewati</button>
+                    <button id="tourNextBtn" onclick="nextTourStep()" class="btn btn-primary" style="padding:8px 18px; border-radius:10px; font-family:'Inter',sans-serif; font-size:12.5px; min-height:auto; font-weight:600;">Lanjut</button>
                 </div>
             </div>
         </div>
