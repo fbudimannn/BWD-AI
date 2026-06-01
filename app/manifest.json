@@ -1,0 +1,18 @@
+{
+  "name": "BWD AI — Asisten Petani Pintar",
+  "short_name": "BWD AI",
+  "description": "Asisten cerdas untuk mengukur kebutuhan pupuk urea tanaman padi menggunakan Bagan Warna Daun secara digital.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f9fb",
+  "theme_color": "#0d631b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "img/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
