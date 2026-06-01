@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bwd-ai-v2';
+const CACHE_NAME = 'bwd-ai-v3';
 const ASSETS = [
   './',
   './index.html',
