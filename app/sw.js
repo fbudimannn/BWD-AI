@@ -1,11 +1,12 @@
-const CACHE_NAME = 'bwd-ai-v1';
+const CACHE_NAME = 'bwd-ai-v2';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
   './js/app.js',
   './img/paddy-bg.jpg',
-  './img/icon.svg',
+  './img/icon-192.png',
+  './img/icon-512.png',
   './manifest.json'
 ];
 
